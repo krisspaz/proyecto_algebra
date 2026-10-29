@@ -1,0 +1,26 @@
+# Cifrado de Hill
+
+Proyecto de álgebra lineal: cifrado de clave privada con matrices módulo 26 y un ataque de texto plano conocido que recupera la clave.
+
+## Estructura
+
+- `hill.py`: conversión de texto a números, validación de la clave, cifrado y descifrado con tres alfabetos: solo letras (mod 26), letras + números + espacio (mod 37) y todo el teclado (mod 113)
+- `ataque.py`: recupera la clave K = C · P⁻¹ (mod 26) a partir de texto plano conocido
+- `app.py` + `templates/` + `static/`: interfaz web para cifrar, descifrar y atacar
+- `tests/`: pruebas automáticas
+- `imagen.py` (extra): cifrado de imágenes por bloques de píxeles (mod 256, clave con det impar)
+- `demo.py`: demo de texto (cifrar, descifrar, clave inválida, ataque)
+- `demo_imagen.py` (extra): demo de imagen; guarda original, cifrada y descifrada en `salida/`
+- `INFORME.md`: teoría, ejemplo resuelto, resultados, conclusiones y guion de presentación
+
+## Uso
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/python app.py                    # interfaz web en http://127.0.0.1:5050
+.venv/bin/python demo.py
+.venv/bin/python -m unittest -v           # pruebas
+.venv/bin/python demo_imagen.py            # imagen sintética
+.venv/bin/python demo_imagen.py foto.png   # imagen propia
+```

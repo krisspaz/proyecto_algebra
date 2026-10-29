@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cifrado de Hill</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+  <main class="pizarra">
+    <header class="cabecera">
+      <h1>Cifrado de Hill</h1>
+      <p class="formula">c = K · p <span class="mod">(mod <span data-mod></span>)</span></p>
+    </header>
+
+    <section class="bloque" aria-labelledby="t-alfabeto">
+      <h2 id="t-alfabeto">Alfabeto</h2>
+      <div class="segmentos" role="radiogroup" aria-label="Alfabeto">
+        {% for a in alfabetos %}
+        <label><input type="radio" name="alfabeto" value="{{ a.clave }}" {% if a.clave == inicial %}checked{% endif %}> {{ a.nombre }}</label>
+        {% endfor %}
+      </div>
+      <p class="nota" id="nota-alfabeto"></p>
+      <details class="desplegable">
+        <summary>Ver el número de cada símbolo</summary>
+        <ol class="tira" id="tira" aria-label="Valor numérico de cada símbolo"></ol>
+      </details>
+    </section>
+
+    <section class="bloque clave" aria-labelledby="t-clave">
+      <h2 id="t-clave">Clave K</h2>
+      <div class="clave-fila">
+        <div class="matriz-con-nombre">
+          <span class="nombre-matriz">K =</span>
+          <div class="matriz editable" id="matriz"></div>
+        </div>
+        <div class="controles-clave">
+          <div class="segmentos pequenos" role="radiogroup" aria-label="Tamaño de la clave">
+            <label><input type="radio" name="tamano" value="2"> 2×2</label>
+            <label><input type="radio" name="tamano" value="3" checked> 3×3</label>
+            <label><input type="radio" name="tamano" value="4"> 4×4</label>
+          </div>
+          <button type="button" class="boton" id="aleatoria">Clave aleatoria</button>
+        </div>
+      </div>
+      <p class="estado" id="estado" aria-live="polite"></p>
+      <div class="matriz-con-nombre inversa" id="bloque-inversa" hidden>
+        <span class="nombre-matriz">K⁻¹ =</span>
+        <div class="matriz" id="inversa"></div>
+      </div>
+    </section>
+
+    <section class="bloque" aria-labelledby="t-mensaje">
+      <div class="titulo-con-control">
+        <h2 id="t-mensaje">Mensaje</h2>
+        <div class="segmentos pequenos" role="radiogroup" aria-label="Operación">
+          <label><input type="radio" name="modo" value="cifrar" checked> Cifrar</label>
+          <label><input type="radio" name="modo" value="descifrar"> Descifrar</label>
+        </div>
+      </div>
+      <div class="textos">
+        <div>
+          <label for="entrada" class="etiqueta" id="etiqueta-entrada">Texto a cifrar</label>
+          <textarea id="entrada" rows="5" spellcheck="false">¿Nos vemos mañana? Aula #204, a las 9:30 (¡no faltes!)</textarea>
+          <p class="aviso" id="ignorados" hidden></p>
+        </div>
+        <div>
+          <span class="etiqueta" id="etiqueta-salida">Texto cifrado</span>
+          <output id="salida" class="salida" for="entrada"></output>
+          <div class="acciones">
+            <button type="button" class="boton" id="invertir">Descifrar este resultado</button>
+            <button type="button" class="boton secundario" id="copiar">Copiar</button>
+          </div>
+        </div>
+      </div>
+      <p class="error" id="error" role="alert" hidden></p>
+    </section>
+
+    <section class="bloque" aria-labelledby="t-pasos">
+      <h2 id="t-pasos">Paso a paso</h2>
+      <p class="nota" id="nota-pasos"></p>
+      <ol class="pasos" id="pasos"></ol>
+    </section>
+
+    <section class="bloque" aria-labelledby="t-ataque">
+      <h2 id="t-ataque">Ataque: recuperar la clave</h2>
+      <p class="nota">Si alguien conoce un trozo del mensaje original y su versión cifrada, puede despejar la clave con K = C · P⁻¹. Bastan n² símbolos conocidos.</p>
+      <div class="textos">
+        <div>
+          <label for="ataque-plano" class="etiqueta">Trozo del mensaje original que conoce el atacante</label>
+          <textarea id="ataque-plano" rows="3" spellcheck="false"></textarea>
+        </div>
+        <div>
+          <label for="ataque-cifrado" class="etiqueta">Su versión cifrada</label>
+          <textarea id="ataque-cifrado" rows="3" spellcheck="false"></textarea>
+        </div>
+      </div>
+      <div class="acciones">
+        <button type="button" class="boton secundario" id="ataque-rellenar">Usar el mensaje y el cifrado de arriba</button>
+        <button type="button" class="boton" id="ataque-lanzar">Recuperar la clave</button>
+      </div>
+      <div class="resultado-ataque" id="ataque-resultado" aria-live="polite" hidden>
+        <div class="matriz-con-nombre">
+          <span class="nombre-matriz">K =</span>
+          <div class="matriz" id="ataque-matriz"></div>
+        </div>
+        <p class="estado" id="ataque-veredicto"></p>
+      </div>
+      <p class="error" id="ataque-error" role="alert" hidden></p>
+    </section>
+  </main>
+
+  <script>
+    window.ALFABETOS = {{ alfabetos | tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
