@@ -10,17 +10,19 @@ from math import gcd
 import numpy as np
 from sympy import Matrix
 
+from inversa import determinante, inversa_mod
+
 MOD_IMG = 256
 
 
 def es_clave_valida_imagen(K: Matrix) -> bool:
-    return K.is_square and gcd(int(K.det()) % MOD_IMG, MOD_IMG) == 1
+    return K.is_square and gcd(int(determinante(K.tolist())) % MOD_IMG, MOD_IMG) == 1
 
 
 def validar_clave_imagen(K: Matrix) -> None:
     if not K.is_square:
         raise ValueError("La clave debe ser una matriz cuadrada.")
-    det = int(K.det()) % MOD_IMG
+    det = int(determinante(K.tolist())) % MOD_IMG
     if gcd(det, MOD_IMG) != 1:
         raise ValueError(
             f"Clave no invertible módulo 256: det(K) ≡ {det} es par."
@@ -63,5 +65,5 @@ def descifrar_imagen(cifrada: np.ndarray, K: Matrix, ancho: int | None = None) -
     validar_clave_imagen(K)
     if cifrada.shape[1] % K.shape[0]:
         raise ValueError("El ancho de la imagen cifrada no es múltiplo del tamaño de la clave.")
-    plana = _aplicar(_a_numpy(K.inv_mod(MOD_IMG)), cifrada)
+    plana = _aplicar(_a_numpy(Matrix(inversa_mod(K.tolist(), MOD_IMG))), cifrada)
     return plana[:, :ancho] if ancho is not None else plana

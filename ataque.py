@@ -9,7 +9,10 @@ la debilidad del cifrado.
 """
 from itertools import combinations, islice
 
+from sympy import Matrix
+
 from hill import LETRAS, Alfabeto, _bloques, es_clave_valida, limpiar, texto_a_numeros
+from inversa import inversa_mod
 
 # Con muchos bloques las combinaciones crecen muy rápido (C(1000, 4) ≈ 4·10¹⁰).
 # Si ninguna de las primeras sirve, es casi seguro que el texto es demasiado repetitivo.
@@ -34,7 +37,7 @@ def recuperar_clave(texto_plano: str, texto_cifrado: str, n: int,
         P = P_todos.extract(list(range(n)), list(columnas))
         if es_clave_valida(P, mod):  # misma condición: det coprimo con m
             C = C_todos.extract(list(range(n)), list(columnas))
-            return (C * P.inv_mod(mod)).applyfunc(lambda x: x % mod)
+            return (C * Matrix(inversa_mod(P.tolist(), mod))).applyfunc(lambda x: x % mod)
 
     raise ValueError(
         f"Ninguna combinación de bloques conocidos es invertible módulo {mod}. "

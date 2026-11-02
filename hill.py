@@ -15,6 +15,8 @@ from math import gcd
 
 from sympy import Matrix
 
+from inversa import determinante, inversa_mod
+
 
 @dataclass(frozen=True)
 class Alfabeto:
@@ -91,13 +93,13 @@ def numeros_a_texto(numeros, alfabeto: Alfabeto = LETRAS) -> str:
 
 def es_clave_valida(K: Matrix, mod: int = MOD) -> bool:
     """K sirve como clave si es cuadrada y det(K) es coprimo con el módulo."""
-    return K.is_square and gcd(int(K.det()) % mod, mod) == 1
+    return K.is_square and gcd(int(determinante(K.tolist())) % mod, mod) == 1
 
 
 def validar_clave(K: Matrix, mod: int = MOD) -> None:
     if not K.is_square:
         raise ValueError("La clave debe ser una matriz cuadrada.")
-    det = int(K.det()) % mod
+    det = int(determinante(K.tolist())) % mod
     if gcd(det, mod) != 1:
         raise ValueError(
             f"Clave no invertible módulo {mod}: det(K) ≡ {det} y mcd({det}, {mod}) ≠ 1."
@@ -106,9 +108,9 @@ def validar_clave(K: Matrix, mod: int = MOD) -> None:
 
 def analizar_clave(K: Matrix, mod: int) -> dict:
     """Datos de la clave para mostrar: determinante, mcd con m y la inversa si existe."""
-    det = int(K.det())
+    det = int(determinante(K.tolist()))
     mcd = gcd(det % mod, mod)
-    inversa = K.inv_mod(mod) if mcd == 1 else None
+    inversa = Matrix(inversa_mod(K.tolist(), mod)) if mcd == 1 else None
     return dict(det=det, det_mod=det % mod, mcd=mcd, valida=mcd == 1, inversa=inversa)
 
 
@@ -159,4 +161,4 @@ def cifrar(mensaje: str, K: Matrix, alfabeto: Alfabeto = LETRAS) -> str:
 def descifrar(cifrado: str, K: Matrix, alfabeto: Alfabeto = LETRAS) -> str:
     validar_clave(K, alfabeto.mod)
     texto = preparar_cifrado(cifrado, K.shape[0], alfabeto)
-    return _aplicar(K.inv_mod(alfabeto.mod), texto, alfabeto)
+    return _aplicar(Matrix(inversa_mod(K.tolist(), alfabeto.mod)), texto, alfabeto)

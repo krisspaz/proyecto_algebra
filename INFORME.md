@@ -94,13 +94,14 @@ En los alfabetos que tienen espacio, el último bloque se completa con espacios 
 | Archivo | Contenido |
 |---|---|
 | `hill.py` | Conversión texto ↔ números, validación de la clave, cifrado y descifrado de texto. Tres alfabetos (mod 26, 37 y 113). Si el mensaje no es múltiplo de `n` se rellena con "X" o con espacios. |
+| `inversa.py` | Inverso modular (Euclides extendido), determinante por cofactores, adjunta e inversa módulo m, hechos a mano. |
 | `ataque.py` | Ataque de texto plano conocido, con un límite de intentos para textos muy repetitivos. |
 | `imagen.py` | Cifrado de imágenes por bloques de píxeles (mod 256). |
 | `app.py`, `templates/`, `static/` | Interfaz web: escribir el mensaje, editar la clave, ver el resultado y el paso a paso al instante, y lanzar el ataque. Python hace todos los cálculos; el navegador solo los muestra. |
 | `tests/` | 23 pruebas automáticas del cifrado, el ataque y la API. |
 | `demo.py`, `demo_imagen.py` | Demostraciones ejecutables. |
 
-Las operaciones con matrices y la inversa modular se apoyan en `sympy` (`Matrix.inv_mod`), que implementa exactamente la fórmula de 2.3. Para imágenes se usa `numpy`, porque hay que multiplicar cientos de miles de bloques.
+El determinante y la inversa módulo m están programados a mano en `inversa.py` con la fórmula de 2.3; `sympy` solo se usa para guardar las matrices y multiplicarlas, y como comprobación (`python inversa.py` compara ambos resultados). Para imágenes se usa `numpy`, porque hay que multiplicar cientos de miles de bloques.
 
 ## 4. Ataque de texto plano conocido
 
