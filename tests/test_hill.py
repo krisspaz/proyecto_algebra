@@ -5,6 +5,7 @@ Ejecutar:  .venv/bin/python -m unittest -v
 import time
 import unittest
 
+import numpy as np
 from sympy import Matrix, isprime
 
 from app import app
@@ -20,6 +21,7 @@ from hill import (
     limpiar,
     simbolos_ignorados,
 )
+from imagen import cifrar_imagen, cifrar_imagen_encadenado, descifrar_imagen_encadenado
 
 CLAVES = [
     Matrix([[3, 2], [5, 7]]),
@@ -107,6 +109,29 @@ class TestAtaque(unittest.TestCase):
         with self.assertRaises(ValueError):
             recuperar_clave("A" * 4000, cifrar("A" * 4000, K), 4)
         self.assertLess(time.time() - inicio, 10)
+
+
+class TestImagenEncadenada(unittest.TestCase):
+    def setUp(self):
+        # imagen de un solo color con un ancho que no es múltiplo de 3
+        self.img = np.full((20, 31, 3), (200, 40, 40), dtype=np.uint8)
+        self.K = Matrix([[6, 24, 1], [13, 16, 10], [20, 17, 15]])
+
+    def test_ida_y_vuelta(self):
+        cifrada = cifrar_imagen_encadenado(self.img, self.K)
+        descifrada = descifrar_imagen_encadenado(cifrada, self.K, ancho=31)
+        self.assertTrue(np.array_equal(descifrada, self.img))
+
+    def test_ida_y_vuelta_gris(self):
+        gris = self.img[:, :, 0]
+        cifrada = cifrar_imagen_encadenado(gris, self.K)
+        self.assertTrue(np.array_equal(descifrar_imagen_encadenado(cifrada, self.K, ancho=31), gris))
+
+    def test_bloques_iguales_dan_cifrados_distintos(self):
+        sin_encadenar = cifrar_imagen(self.img, self.K)[0, :30].reshape(-1, 3, 3)
+        encadenada = cifrar_imagen_encadenado(self.img, self.K)[0, :30].reshape(-1, 3, 3)
+        self.assertEqual(len(np.unique(sin_encadenar, axis=0)), 1)
+        self.assertGreater(len(np.unique(encadenada, axis=0)), 1)
 
 
 class TestAPI(unittest.TestCase):

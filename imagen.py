@@ -67,3 +67,54 @@ def descifrar_imagen(cifrada: np.ndarray, K: Matrix, ancho: int | None = None) -
         raise ValueError("El ancho de la imagen cifrada no es múltiplo del tamaño de la clave.")
     plana = _aplicar(_a_numpy(Matrix(inversa_mod(K.tolist(), MOD_IMG))), cifrada)
     return plana[:, :ancho] if ancho is not None else plana
+
+
+# --- Encadenamiento de bloques ------------------------------------------------
+# Sin encadenar, bloques iguales dan cifrados iguales y se ven las figuras.
+# Encadenando, cada bloque se suma con el cifrado anterior antes de multiplicar:
+#     c_i = K · (p_i + c_{i-1})   (mod 256),   con c_0 = 0
+# y para descifrar se despeja:
+#     p_i = K⁻¹ · c_i − c_{i-1}   (mod 256)
+
+
+def _a_bloques(img: np.ndarray, n: int) -> np.ndarray:
+    # cada canal recorrido por filas, una fila de la salida por bloque
+    canales = img.reshape(img.shape[0], img.shape[1], -1).transpose(2, 0, 1)
+    return canales.reshape(-1, n).astype(np.int64)
+
+
+def _a_imagen(bloques: np.ndarray, forma) -> np.ndarray:
+    # inverso de _a_bloques
+    alto, ancho = forma[:2]
+    canales = bloques.reshape(-1, alto, ancho)
+    return canales.transpose(1, 2, 0).reshape(forma).astype(np.uint8)
+
+
+def cifrar_imagen_encadenado(img: np.ndarray, K: Matrix) -> np.ndarray:
+    validar_clave_imagen(K)
+    n = K.shape[0]
+    img = rellenar(img, n)
+    Kn = _a_numpy(K)
+    bloques = _a_bloques(img, n)
+    cifrados = np.zeros_like(bloques)
+    anterior = np.zeros(n, dtype=np.int64)
+    for i in range(len(bloques)):
+        anterior = (Kn @ (bloques[i] + anterior)) % MOD_IMG
+        cifrados[i] = anterior
+    return _a_imagen(cifrados, img.shape)
+
+
+def descifrar_imagen_encadenado(cifrada: np.ndarray, K: Matrix, ancho: int | None = None) -> np.ndarray:
+    validar_clave_imagen(K)
+    n = K.shape[0]
+    if cifrada.shape[1] % n:
+        raise ValueError("El ancho de la imagen cifrada no es múltiplo del tamaño de la clave.")
+    K_inv = _a_numpy(Matrix(inversa_mod(K.tolist(), MOD_IMG)))
+    cifrados = _a_bloques(cifrada, n)
+    planos = np.zeros_like(cifrados)
+    anterior = np.zeros(n, dtype=np.int64)
+    for i in range(len(cifrados)):
+        planos[i] = (K_inv @ cifrados[i] - anterior) % MOD_IMG
+        anterior = cifrados[i]
+    plana = _a_imagen(planos, cifrada.shape)
+    return plana[:, :ancho] if ancho is not None else plana
