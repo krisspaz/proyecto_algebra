@@ -5,6 +5,7 @@ Proyecto de álgebra lineal: cifrado de clave privada con matrices módulo 26 y 
 ## Estructura
 
 - `hill.py`: conversión de texto a números, validación de la clave, cifrado y descifrado con tres alfabetos: solo letras (mod 26), letras + números + espacio (mod 37) y todo el teclado (mod 113)
+- `cifrado_hill.ipynb`: notebook explicativo con el ejemplo a mano, la inversa, el ataque y las imágenes
 - `inversa.py`: inverso modular, determinante, adjunta e inversa módulo m hechos a mano
 - `ataque.py`: recupera la clave K = C · P⁻¹ (mod 26) a partir de texto plano conocido
 - `app.py` + `templates/` + `static/`: interfaz web para cifrar, descifrar y atacar
