@@ -1,5 +1,25 @@
 # Cifrado de Hill: álgebra lineal aplicada a la criptografía
 
+**Curso:** Álgebra Lineal, sección B — Segundo semestre 2026
+**Tema:** Criptografía de clave privada
+**Integrantes:**
+
+| Nombre | Carné |
+|---|---|
+| Kris Paz | (pendiente) |
+| Milton Beltrán | 20210030 |
+
+## Objetivos
+
+**General.** Aplicar matrices, determinantes e inversas al cifrado y descifrado de mensajes con el cifrado de Hill.
+
+**Específicos.**
+
+1. Explicar por qué una matriz sirve como clave módulo `m` solo si `mcd(det K, m) = 1`, y calcular su inversa con la adjunta.
+2. Programar el cifrado, el descifrado y la inversa módulo `m` en Python, y comprobarlos con ejemplos resueltos a mano.
+3. Mostrar que, por ser lineal, la clave se recupera resolviendo un sistema a partir de texto conocido.
+4. Extender el método a imágenes y ver qué información deja pasar.
+
 ## 1. Idea general
 
 El cifrado de Hill (Lester Hill, 1929) es un cifrado de clave privada por bloques. Cada letra se convierte en un número (A=0, B=1, …, Z=25), el mensaje se corta en bloques de `n` letras y cada bloque, visto como vector columna `p`, se transforma con una matriz clave `K` de tamaño `n×n`:
@@ -125,6 +145,8 @@ Si el ancho no es múltiplo de `n`, se añaden columnas negras a la derecha; al 
 
 Ejecutar `python demo_imagen.py` genera `salida/original.png`, `salida/cifrada.png`, `salida/cifrada_encadenada.png` y `salida/descifrada.png`. La imagen descifrada coincide píxel a píxel con la original.
 
+![Imagen original, cifrada y descifrada](figuras/imagen_sin_encadenar.png)
+
 **Resultado clave:** en la imagen cifrada **se siguen distinguiendo las figuras**. Una zona de color uniforme produce siempre el mismo bloque y, por tanto, el mismo bloque cifrado: el cifrado cambia los colores, pero no oculta la estructura. Es el mismo problema del modo ECB en cifrados modernos.
 
 ### 5.1 Encadenar bloques
@@ -143,7 +165,11 @@ p_i = K⁻¹ · c_i − c_{i-1}   (mod 256)
 
 Ahora dos bloques iguales casi nunca dan el mismo cifrado, porque cada uno arrastra lo que pasó antes. En `salida/cifrada_encadenada.png` la imagen se ve como ruido y ya no se distinguen las figuras, y al descifrar se recupera píxel a píxel. Es la misma idea del modo CBC de los cifrados modernos (allí se usa XOR en lugar de suma). Está en `imagen.cifrar_imagen_encadenado` y `imagen.descifrar_imagen_encadenado`.
 
-Esto arregla la fuga de patrones, pero **no** el ataque de la sección 4: el cifrado sigue siendo lineal. Si el atacante conoce los `p_i` y ve los `c_i`, también conoce `c_{i-1}`, y con `n` bloques arma `C = K · (P + C_anterior)`, de donde `K = C · (P + C_anterior)⁻¹`.
+![Imagen cifrada sin encadenar, encadenada y descifrada](figuras/imagen_encadenada.png)
+
+Esto arregla la fuga de patrones, pero **no** el ataque de la sección 4: el cifrado sigue siendo lineal. Si el atacante conoce los `p_i` y ve los `c_i`, también conoce `c_{i-1}`, y con `n` bloques arma `C = K · (P + C_anterior)`, de donde `K = C · (P + C_anterior)⁻¹`. En el notebook (sección 7) se hace con unos pocos píxeles de la primera fila y sale la clave exacta.
+
+Por eso el encadenamiento **no vuelve seguro al cifrado**: solo hace que bloques iguales no se cifren igual, pero la clave queda tan expuesta como antes. Para eso hacen falta pasos no lineales (sección 6).
 
 ## 6. Conclusiones
 
@@ -153,11 +179,18 @@ Esto arregla la fuga de patrones, pero **no** el ataque de la sección 4: el cif
 4. Es determinista por bloques: bloques iguales dan cifrados iguales, lo que filtra patrones (muy visible en imágenes). Encadenar los bloques lo arregla, pero el cifrado sigue siendo lineal y el ataque sigue funcionando.
 5. Por eso los cifrados modernos (AES) combinan pasos lineales con pasos **no lineales** (S-boxes) y usan modos de operación que encadenan bloques.
 
-## 7. Guion de presentación (≈10 min)
+## 7. Referencias
+
+- Hill, L. S. (1929). Cryptography in an algebraic alphabet. *The American Mathematical Monthly*, 36(6), 306–312.
+- Poole, D. (2011). *Álgebra lineal: una introducción moderna* (3.ª ed.). Cengage Learning.
+- Stinson, D. R. y Paterson, M. B. (2018). *Cryptography: Theory and Practice* (4.ª ed.). CRC Press.
+- Documentación de SymPy (https://docs.sympy.org) y NumPy (https://numpy.org/doc).
+
+## Anexo: guion de presentación (≈10 min)
 
 1. **Problema** (1 min): enviar un mensaje que solo el receptor pueda leer; clave compartida.
 2. **Idea de Hill** (2 min): letras → números → bloques → `c = K·p mod 26`. Ejemplo "HELP" → "HIAT" en la pizarra.
 3. **La matemática** (3 min): inverso modular, `mcd(det, 26) = 1`, contraejemplo `[[2,4],[6,8]]` ("NA" y "AA" chocan).
 4. **Demo en vivo** (2 min): abrir la interfaz (`python app.py`), cifrar un mensaje con signos y tildes en «Todo el teclado», pulsar «Descifrar este resultado», cambiar una casilla de la clave hasta que deje de servir. Al final, en la sección «Ataque», pulsar «Usar el mensaje y el cifrado de arriba» y «Recuperar la clave».
-5. **Imágenes** (1 min): mostrar `salida/original.png` junto a `salida/cifrada.png` (se ven las figuras) y `salida/cifrada_encadenada.png` (ya no se ven).
+5. **Imágenes** (1 min): mostrar `salida/original.png` junto a `salida/cifrada.png` (se ven las figuras) y `salida/cifrada_encadenada.png` (ya no se ven). Aclarar que la clave sigue igual de expuesta.
 6. **Conclusión** (1 min): la linealidad es la fortaleza matemática y la debilidad criptográfica.
