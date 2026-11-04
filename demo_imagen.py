@@ -4,7 +4,7 @@ Uso:
     python demo_imagen.py              # usa una imagen sintética
     python demo_imagen.py foto.png     # usa una imagen propia
 
-Guarda original, cifrada y descifrada en la carpeta salida/.
+Guarda original, cifrada, cifrada_encadenada y descifrada en la carpeta salida/.
 """
 import sys
 from pathlib import Path
@@ -13,7 +13,13 @@ import numpy as np
 from PIL import Image
 from sympy import Matrix
 
-from imagen import cifrar_imagen, descifrar_imagen, es_clave_valida_imagen
+from imagen import (
+    cifrar_imagen,
+    cifrar_imagen_encadenado,
+    descifrar_imagen,
+    descifrar_imagen_encadenado,
+    es_clave_valida_imagen,
+)
 
 K = Matrix([[6, 24, 1], [13, 16, 10], [20, 17, 15]])  # det = 441, impar
 SALIDA = Path(__file__).parent / "salida"
@@ -40,14 +46,18 @@ print("Clave:", K.tolist(), "| det mod 256 =", int(K.det()) % 256,
 
 cifrada = cifrar_imagen(original, K)
 descifrada = descifrar_imagen(cifrada, K, ancho=original.shape[1])
+encadenada = cifrar_imagen_encadenado(original, K)
+descifrada_enc = descifrar_imagen_encadenado(encadenada, K, ancho=original.shape[1])
 
 SALIDA.mkdir(exist_ok=True)
 Image.fromarray(original).save(SALIDA / "original.png")
 Image.fromarray(cifrada).save(SALIDA / "cifrada.png")
 Image.fromarray(descifrada).save(SALIDA / "descifrada.png")
+Image.fromarray(encadenada).save(SALIDA / "cifrada_encadenada.png")
 
 print("Tamaño original:", original.shape, "| cifrada:", cifrada.shape)
 print("¿Descifrada idéntica a la original?", np.array_equal(original, descifrada))
+print("¿Descifrada (encadenada) idéntica a la original?", np.array_equal(original, descifrada_enc))
 print("Imágenes guardadas en", SALIDA)
 
 try:

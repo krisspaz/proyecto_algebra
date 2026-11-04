@@ -1,5 +1,25 @@
 # Cifrado de Hill: álgebra lineal aplicada a la criptografía
 
+**Curso:** Álgebra Lineal, sección B — Segundo semestre 2026
+**Tema:** Criptografía de clave privada
+**Integrantes:**
+
+| Nombre | Carné |
+|---|---|
+| Kris Paz | (pendiente) |
+| Milton Beltrán | 20210030 |
+
+## Objetivos
+
+**General.** Aplicar matrices, determinantes e inversas al cifrado y descifrado de mensajes con el cifrado de Hill.
+
+**Específicos.**
+
+1. Explicar por qué una matriz sirve como clave módulo `m` solo si `mcd(det K, m) = 1`, y calcular su inversa con la adjunta.
+2. Programar el cifrado, el descifrado y la inversa módulo `m` en Python, y comprobarlos con ejemplos resueltos a mano.
+3. Mostrar que, por ser lineal, la clave se recupera resolviendo un sistema a partir de texto conocido.
+4. Extender el método a imágenes y ver qué información deja pasar.
+
 ## 1. Idea general
 
 El cifrado de Hill (Lester Hill, 1929) es un cifrado de clave privada por bloques. Cada letra se convierte en un número (A=0, B=1, …, Z=25), el mensaje se corta en bloques de `n` letras y cada bloque, visto como vector columna `p`, se transforma con una matriz clave `K` de tamaño `n×n`:
@@ -94,13 +114,14 @@ En los alfabetos que tienen espacio, el último bloque se completa con espacios 
 | Archivo | Contenido |
 |---|---|
 | `hill.py` | Conversión texto ↔ números, validación de la clave, cifrado y descifrado de texto. Tres alfabetos (mod 26, 37 y 113). Si el mensaje no es múltiplo de `n` se rellena con "X" o con espacios. |
+| `inversa.py` | Inverso modular (Euclides extendido), determinante por cofactores, adjunta e inversa módulo m, hechos a mano. |
 | `ataque.py` | Ataque de texto plano conocido, con un límite de intentos para textos muy repetitivos. |
 | `imagen.py` | Cifrado de imágenes por bloques de píxeles (mod 256). |
 | `app.py`, `templates/`, `static/` | Interfaz web: escribir el mensaje, editar la clave, ver el resultado y el paso a paso al instante, y lanzar el ataque. Python hace todos los cálculos; el navegador solo los muestra. |
-| `tests/` | 23 pruebas automáticas del cifrado, el ataque y la API. |
+| `tests/` | 26 pruebas automáticas del cifrado, el ataque, las imágenes encadenadas y la API. |
 | `demo.py`, `demo_imagen.py` | Demostraciones ejecutables. |
 
-Las operaciones con matrices y la inversa modular se apoyan en `sympy` (`Matrix.inv_mod`), que implementa exactamente la fórmula de 2.3. Para imágenes se usa `numpy`, porque hay que multiplicar cientos de miles de bloques.
+El determinante y la inversa módulo m están programados a mano en `inversa.py` con la fórmula de 2.3; `sympy` solo se usa para guardar las matrices y multiplicarlas, y como comprobación (`python inversa.py` compara ambos resultados). Para imágenes se usa `numpy`, porque hay que multiplicar cientos de miles de bloques.
 
 ## 4. Ataque de texto plano conocido
 
@@ -122,23 +143,54 @@ Como `256 = 2⁸`, el único factor primo es 2, y por el teorema de 2.4 **la cla
 
 Si el ancho no es múltiplo de `n`, se añaden columnas negras a la derecha; al descifrar se recortan.
 
-Ejecutar `python demo_imagen.py` genera `salida/original.png`, `salida/cifrada.png` y `salida/descifrada.png`. La imagen descifrada coincide píxel a píxel con la original.
+Ejecutar `python demo_imagen.py` genera `salida/original.png`, `salida/cifrada.png`, `salida/cifrada_encadenada.png` y `salida/descifrada.png`. La imagen descifrada coincide píxel a píxel con la original.
+
+![Imagen original, cifrada y descifrada](figuras/imagen_sin_encadenar.png)
 
 **Resultado clave:** en la imagen cifrada **se siguen distinguiendo las figuras**. Una zona de color uniforme produce siempre el mismo bloque y, por tanto, el mismo bloque cifrado: el cifrado cambia los colores, pero no oculta la estructura. Es el mismo problema del modo ECB en cifrados modernos.
+
+### 5.1 Encadenar bloques
+
+Para esconder las figuras, cada bloque se suma con el bloque cifrado anterior antes de multiplicar por la clave:
+
+```
+c_i = K · (p_i + c_{i-1})   (mod 256),   con c_0 = 0
+```
+
+Para descifrar se despeja `p_i`, que solo necesita la inversa de siempre:
+
+```
+p_i = K⁻¹ · c_i − c_{i-1}   (mod 256)
+```
+
+Ahora dos bloques iguales casi nunca dan el mismo cifrado, porque cada uno arrastra lo que pasó antes. En `salida/cifrada_encadenada.png` la imagen se ve como ruido y ya no se distinguen las figuras, y al descifrar se recupera píxel a píxel. Es la misma idea del modo CBC de los cifrados modernos (allí se usa XOR en lugar de suma). Está en `imagen.cifrar_imagen_encadenado` y `imagen.descifrar_imagen_encadenado`.
+
+![Imagen cifrada sin encadenar, encadenada y descifrada](figuras/imagen_encadenada.png)
+
+Esto arregla la fuga de patrones, pero **no** el ataque de la sección 4: el cifrado sigue siendo lineal. Si el atacante conoce los `p_i` y ve los `c_i`, también conoce `c_{i-1}`, y con `n` bloques arma `C = K · (P + C_anterior)`, de donde `K = C · (P + C_anterior)⁻¹`. En el notebook (sección 7) se hace con unos pocos píxeles de la primera fila y sale la clave exacta.
+
+Por eso el encadenamiento **no vuelve seguro al cifrado**: solo hace que bloques iguales no se cifren igual, pero la clave queda tan expuesta como antes. Para eso hacen falta pasos no lineales (sección 6).
 
 ## 6. Conclusiones
 
 1. El cifrado de Hill es una aplicación directa del álgebra lineal: cifrar es multiplicar por una matriz, descifrar es multiplicar por la inversa.
 2. La condición de invertibilidad cambia respecto a los reales: no basta `det ≠ 0`, se necesita `mcd(det, m) = 1`.
 3. Su linealidad lo hace vulnerable: con `n²` letras conocidas la clave se obtiene resolviendo un sistema.
-4. Es determinista por bloques: bloques iguales dan cifrados iguales, lo que filtra patrones (muy visible en imágenes).
+4. Es determinista por bloques: bloques iguales dan cifrados iguales, lo que filtra patrones (muy visible en imágenes). Encadenar los bloques lo arregla, pero el cifrado sigue siendo lineal y el ataque sigue funcionando.
 5. Por eso los cifrados modernos (AES) combinan pasos lineales con pasos **no lineales** (S-boxes) y usan modos de operación que encadenan bloques.
 
-## 7. Guion de presentación (≈10 min)
+## 7. Referencias
+
+- Hill, L. S. (1929). Cryptography in an algebraic alphabet. *The American Mathematical Monthly*, 36(6), 306–312.
+- Poole, D. (2011). *Álgebra lineal: una introducción moderna* (3.ª ed.). Cengage Learning.
+- Stinson, D. R. y Paterson, M. B. (2018). *Cryptography: Theory and Practice* (4.ª ed.). CRC Press.
+- Documentación de SymPy (https://docs.sympy.org) y NumPy (https://numpy.org/doc).
+
+## Anexo: guion de presentación (≈10 min)
 
 1. **Problema** (1 min): enviar un mensaje que solo el receptor pueda leer; clave compartida.
 2. **Idea de Hill** (2 min): letras → números → bloques → `c = K·p mod 26`. Ejemplo "HELP" → "HIAT" en la pizarra.
 3. **La matemática** (3 min): inverso modular, `mcd(det, 26) = 1`, contraejemplo `[[2,4],[6,8]]` ("NA" y "AA" chocan).
 4. **Demo en vivo** (2 min): abrir la interfaz (`python app.py`), cifrar un mensaje con signos y tildes en «Todo el teclado», pulsar «Descifrar este resultado», cambiar una casilla de la clave hasta que deje de servir. Al final, en la sección «Ataque», pulsar «Usar el mensaje y el cifrado de arriba» y «Recuperar la clave».
-5. **Imágenes** (1 min): mostrar `salida/original.png` junto a `salida/cifrada.png`; se ven las figuras.
+5. **Imágenes** (1 min): mostrar `salida/original.png` junto a `salida/cifrada.png` (se ven las figuras) y `salida/cifrada_encadenada.png` (ya no se ven). Aclarar que la clave sigue igual de expuesta.
 6. **Conclusión** (1 min): la linealidad es la fortaleza matemática y la debilidad criptográfica.
