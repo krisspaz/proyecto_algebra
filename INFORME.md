@@ -9,6 +9,21 @@
 | Kris Paz | (pendiente) |
 | Milton Beltrán | 20210030 |
 
+## Preliminares: imágenes y código
+
+Una imagen digital se representa como una cuadrícula de píxeles. En una imagen RGB de 8 bits por canal, cada píxel tiene tres números entre 0 y 255: rojo (R), verde (G) y azul (B). Por ejemplo, `(255, 0, 0)` representa rojo. No se asigna un carácter ASCII a cada color: ASCII codifica caracteres de texto; aquí trabajamos directamente con los valores numéricos de los canales. El archivo de imagen puede guardar esos valores con formatos y compresión distintos; el programa primero lo convierte a RGB para trabajar con sus píxeles.
+
+En nuestra implementación, cada canal se procesa por separado. Se toman grupos de píxeles horizontales y se multiplican por la matriz clave, reduciendo cada resultado módulo 256. Por ejemplo, para dos valores consecutivos del canal rojo y la clave `K = [[1, 1], [1, 2]]`:
+
+```text
+p = (100, 150)ᵀ
+c = K · p mod 256 = (250, 400)ᵀ mod 256 = (250, 144)ᵀ
+```
+
+Así cambian los valores de color en esas posiciones; este procedimiento no cambia de lugar los píxeles. Como `det(K) = 1` es impar, la matriz tiene inversa módulo 256 y permite recuperar los valores originales. Si el ancho de la imagen no es múltiplo del tamaño del bloque, se agregan columnas de relleno y se recortan al descifrar. La sección 5 explica el encadenamiento y las limitaciones de seguridad: este ejemplo es educativo y no ofrece cifrado seguro para imágenes reales.
+
+El código Python está disponible en [imagen.py](imagen.py) y la demostración en [demo_imagen.py](demo_imagen.py). Para ejecutarla, instalen las dependencias de [requirements.txt](requirements.txt) y usen `python demo_imagen.py` o `python demo_imagen.py foto.png`; los resultados se guardan en `salida/`.
+
 ## Objetivos
 
 **General.** Aplicar matrices, determinantes e inversas al cifrado y descifrado de mensajes con el cifrado de Hill.
