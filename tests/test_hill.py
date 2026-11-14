@@ -2,10 +2,13 @@
 
 Ejecutar:  .venv/bin/python -m unittest -v
 """
+import io
+import json
 import time
 import unittest
 
 import numpy as np
+from PIL import Image
 from sympy import Matrix, isprime
 
 from app import app
@@ -231,6 +234,38 @@ class TestAPI(unittest.TestCase):
             texto_plano="ab", texto_cifrado="cd", n=3, alfabeto="completo",
         )).get_json()
         self.assertFalse(r["ok"])
+
+    def imagen(self, clave=((6, 24, 1), (13, 16, 10), (20, 17, 15)), **campos):
+        datos = dict(clave=json.dumps(clave), **campos)
+        return self.cliente.post("/api/imagen", data=datos, content_type="multipart/form-data")
+
+    def test_imagen_de_ejemplo(self):
+        r = self.imagen().get_json()
+        self.assertTrue(r["ok"])
+        self.assertTrue(r["identica"])
+        self.assertEqual(r["det_mod"], 441 % 256)
+        self.assertEqual(r["bloque"]["cifrado"], [[56, 216, 216], [120, 24, 24], [160, 32, 32]])
+        self.assertTrue(r["encadenada"].startswith("data:image/png;base64,"))
+
+    def test_imagen_subida_y_bloque_elegido(self):
+        buffer = io.BytesIO()
+        Image.new("RGB", (40, 10), (10, 20, 30)).save(buffer, format="PNG")
+        buffer.seek(0)
+        r = self.imagen(archivo=(buffer, "foto.png"), fila="3", columna="7").get_json()
+        self.assertTrue(r["ok"])
+        self.assertEqual((r["alto"], r["ancho"]), (10, 40))
+        self.assertEqual(r["bloque"]["columnas"], [6, 7, 8])
+        self.assertEqual(r["bloque"]["original"], [[10, 20, 30]] * 3)
+
+    def test_imagen_clave_con_det_par(self):
+        r = self.imagen(clave=[[2, 4], [6, 8]]).get_json()
+        self.assertFalse(r["ok"])
+        self.assertEqual(r["mcd"], 8)
+
+    def test_imagen_archivo_que_no_es_imagen(self):
+        r = self.imagen(archivo=(io.BytesIO(b"hola"), "nota.txt"))
+        self.assertEqual(r.status_code, 400)
+        self.assertFalse(r.get_json()["ok"])
 
     def test_ruta_inexistente_devuelve_json(self):
         r = self.cliente.get("/api/nada")

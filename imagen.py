@@ -69,6 +69,17 @@ def descifrar_imagen(cifrada: np.ndarray, K: Matrix, ancho: int | None = None) -
     return plana[:, :ancho] if ancho is not None else plana
 
 
+def imagen_de_prueba(alto: int = 200, ancho: int = 300) -> np.ndarray:
+    """Fondo claro con un círculo rojo, un rectángulo azul y un degradado gris.
+    Las zonas de un solo color dejan ver qué pasa con bloques repetidos."""
+    img = np.full((alto, ancho, 3), (235, 235, 220), dtype=np.uint8)
+    y, x = np.ogrid[:alto, :ancho]
+    img[(y - 100) ** 2 + (x - 90) ** 2 < 60**2] = (200, 40, 40)  # círculo
+    img[40:160, 170:270] = (30, 80, 180)  # rectángulo
+    img[90:110, :] = np.linspace(0, 255, ancho, dtype=np.uint8)[:, None]  # degradado
+    return img
+
+
 def explicar_bloque(img: np.ndarray, K: Matrix, fila: int, columna: int) -> dict:
     """Muestra a mano qué le pasa a un bloque de n píxeles al cifrar sin encadenar.
 

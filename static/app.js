@@ -227,6 +227,9 @@ async function procesar() {
     void salida.offsetWidth; // reinicia la animación
     salida.classList.add("cambio");
   }
+
+  // si hay una imagen abierta y cambió la clave, se vuelve a cifrar
+  if (imagen.fuente && JSON.stringify(estado.clave) !== imagen.clave) programarImagen();
 }
 
 function programar() {
@@ -261,7 +264,142 @@ async function atacar() {
     : "Esta es la clave que encaja con los textos dados. No coincide con la clave de arriba: revisa que el cifrado sea de este mensaje.";
 }
 
+// --- Imágenes ---------------------------------------------------------------
+// Se cifran en Python con la clave de arriba (mod 256). Al hacer clic en la
+// original se pide la cuenta del bloque de píxeles que cae en ese punto.
+
+const imagen = { fuente: null, clave: "", fila: null, columna: null, peticion: 0 };
+const CANALES = [
+  { nombre: "rojo", clase: "r" },
+  { nombre: "verde", clase: "g" },
+  { nombre: "azul", clase: "b" },
+];
+let esperaImagen;
+
+async function procesarImagen() {
+  if (!imagen.fuente) return;
+  const id = ++imagen.peticion;
+  imagen.clave = JSON.stringify(estado.clave);
+  const datos = new FormData();
+  datos.append("clave", imagen.clave);
+  if (imagen.fuente instanceof File) datos.append("archivo", imagen.fuente);
+  if (imagen.fila !== null) {
+    datos.append("fila", imagen.fila);
+    datos.append("columna", imagen.columna);
+  }
+  $("imagen-estado").className = "estado";
+  $("imagen-estado").textContent = "Cifrando la imagen…";
+
+  let r;
+  try {
+    r = await (await fetch("/api/imagen", { method: "POST", body: datos })).json();
+  } catch {
+    r = { ok: false, error: "No hay conexión con el servidor. ¿Sigue abierto app.py?" };
+  }
+  if (id !== imagen.peticion) return; // ya llegó una respuesta más nueva
+
+  pintarEstadoImagen(r);
+  mostrarError("imagen-error", r.ok ? "" : r.error);
+  $("imagen-resultado").hidden = !r.ok;
+  if (!r.ok) return;
+
+  for (const nombre of ["original", "cifrada", "encadenada", "descifrada"]) {
+    $(`imagen-${nombre}`).src = r[nombre];
+  }
+  $("imagen-identica").textContent = r.identica ? "(idéntica a la original ✓)" : "(no coincide con la original)";
+  pintarBloque(r.bloque, r.ancho, r.alto);
+}
+
+function programarImagen() {
+  clearTimeout(esperaImagen);
+  esperaImagen = setTimeout(procesarImagen, 250);
+}
+
+function pintarEstadoImagen(r) {
+  const el = $("imagen-estado");
+  if (r.det === undefined) {
+    el.className = "estado";
+    el.replaceChildren();
+    return;
+  }
+  const calculo = crear("span", "mate", `det K = ${r.det} ≡ ${r.det_mod} (mod 256)`);
+  let texto = r.mcd === 1
+    ? ": es impar, así que la clave también sirve para imágenes."
+    : `: es par (mcd(${r.det_mod}, 256) = ${r.mcd}), así que no sirve para imágenes.`;
+  if (r.ok && r.achicada) texto += ` La foto se achicó a ${r.ancho}×${r.alto} píxeles para que sea rápido.`;
+  el.className = r.mcd === 1 ? "estado ok" : "estado mal";
+  el.replaceChildren(calculo, texto);
+}
+
+function pixel(valores, columna) {
+  const [r, g, b] = valores.length === 1 ? [valores[0], valores[0], valores[0]] : valores;
+  const casilla = crear("div", "pixel");
+  casilla.style.background = `rgb(${r}, ${g}, ${b})`;
+  casilla.classList.toggle("oscuro", 0.299 * r + 0.587 * g + 0.114 * b < 140);
+  casilla.append(crear("span", "", tupla(valores)), crear("small", "", `col. ${columna}`));
+  return casilla;
+}
+
+function pintarBloque(b, ancho, alto) {
+  const n = b.columnas.length;
+  $("bloque-titulo").textContent =
+    `Un bloque de cerca: fila ${b.fila}, columnas ${b.columnas[0]} a ${b.columnas[n - 1]}`;
+  $("pixeles-original").replaceChildren(...b.original.map((px, i) => pixel(px, b.columnas[i])));
+  $("pixeles-cifrado").replaceChildren(...b.cifrado.map((px, i) => pixel(px, b.columnas[i])));
+
+  const canales = b.canales.length === 1 ? [{ nombre: "gris", clase: "" }] : CANALES;
+  $("bloque-canales").replaceChildren(
+    ...b.canales.map((c, i) => {
+      const li = crear("li", "paso");
+      li.append(
+        crear("span", `canal ${canales[i].clase}`, canales[i].nombre),
+        termino(
+          crear("span", "clave-var", "K"),
+          crear("span", "signo", "·"),
+          vectorColumna(c.p),
+          crear("span", "signo", "="),
+          vectorColumna(c.Kp, "sin-reducir"),
+          crear("span", "signo", "≡"),
+          vectorColumna(c.c)
+        )
+      );
+      return li;
+    })
+  );
+
+  // marca en la original dónde está el bloque
+  const marca = $("imagen-marca") || crear("span", "marca");
+  marca.id = "imagen-marca";
+  marca.style.left = `${((b.columnas[0] + n / 2) / ancho) * 100}%`;
+  marca.style.top = `${((b.fila + 0.5) / alto) * 100}%`;
+  $("imagen-original-boton").append(marca);
+}
+
+function elegirImagen(fuente) {
+  imagen.fuente = fuente;
+  imagen.fila = imagen.columna = null; // el servidor elige un bloque de ejemplo
+  procesarImagen();
+}
+
 // --- Eventos ----------------------------------------------------------------
+
+$("imagen-ejemplo").addEventListener("click", () => elegirImagen("ejemplo"));
+
+$("imagen-archivo").addEventListener("change", (e) => {
+  if (e.target.files.length) elegirImagen(e.target.files[0]);
+  e.target.value = ""; // permite volver a elegir el mismo archivo
+});
+
+$("imagen-original-boton").addEventListener("click", (e) => {
+  const img = $("imagen-original");
+  const caja = img.getBoundingClientRect();
+  if (!img.naturalWidth || !caja.width) return;
+  const x = e.clientX ? (e.clientX - caja.left) / caja.width : 0.5;
+  const y = e.clientY ? (e.clientY - caja.top) / caja.height : 0.5;
+  imagen.columna = Math.floor(Math.min(Math.max(x, 0), 0.9999) * img.naturalWidth);
+  imagen.fila = Math.floor(Math.min(Math.max(y, 0), 0.9999) * img.naturalHeight);
+  procesarImagen();
+});
 
 document.querySelectorAll('input[name="alfabeto"]').forEach((radio) =>
   radio.addEventListener("change", () => {

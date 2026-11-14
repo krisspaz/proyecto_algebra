@@ -20,21 +20,11 @@ from imagen import (
     descifrar_imagen_encadenado,
     es_clave_valida_imagen,
     explicar_bloque,
+    imagen_de_prueba,
 )
 
 K = Matrix([[6, 24, 1], [13, 16, 10], [20, 17, 15]])  # det = 441, impar
 SALIDA = Path(__file__).parent / "salida"
-
-
-def imagen_sintetica(alto: int = 200, ancho: int = 301) -> np.ndarray:
-    """Fondo uniforme con figuras: deja ver qué pasa con zonas de color plano.
-    El ancho 301 no es múltiplo de 3 a propósito, para probar el relleno."""
-    img = np.full((alto, ancho, 3), (235, 235, 220), dtype=np.uint8)
-    y, x = np.ogrid[:alto, :ancho]
-    img[(y - 100) ** 2 + (x - 90) ** 2 < 60**2] = (200, 40, 40)  # círculo
-    img[40:160, 170:270] = (30, 80, 180)  # rectángulo
-    img[90:110, :] = np.linspace(0, 255, ancho, dtype=np.uint8)[:, None]  # degradado
-    return img
 
 
 def tupla(v) -> str:
@@ -56,7 +46,8 @@ if len(sys.argv) > 1:
     original = np.array(Image.open(sys.argv[1]).convert("RGB"))
     fila_ejemplo, columna_ejemplo = original.shape[0] // 2, original.shape[1] // 2
 else:
-    original = imagen_sintetica()
+    # ancho 301, que no es múltiplo de 3, para probar el relleno
+    original = imagen_de_prueba(ancho=301)
     fila_ejemplo, columna_ejemplo = 60, 90  # dentro del círculo rojo
 
 print("Clave:", K.tolist(), "| det mod 256 =", int(K.det()) % 256,

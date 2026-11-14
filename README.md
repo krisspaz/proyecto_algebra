@@ -8,11 +8,11 @@ Proyecto de álgebra lineal: cifrado de clave privada con matrices módulo 26 y 
 - `cifrado_hill.ipynb`: notebook explicativo con el ejemplo a mano, la inversa, el ataque y las imágenes
 - `inversa.py`: inverso modular, determinante, adjunta e inversa módulo m hechos a mano
 - `ataque.py`: recupera la clave K = C · P⁻¹ (mod 26) a partir de texto plano conocido
-- `app.py` + `templates/` + `static/`: interfaz web para cifrar, descifrar y atacar
+- `app.py` + `templates/` + `static/`: interfaz web para cifrar, descifrar, atacar y cifrar imágenes (con la cuenta de cada bloque de píxeles)
 - `tests/`: pruebas automáticas
-- `imagen.py` (extra): cifrado de imágenes por bloques de píxeles (mod 256, clave con det impar)
+- `imagen.py` (extra): cifrado de imágenes por bloques de píxeles (mod 256, clave con det impar). Cada píxel es (R, G, B) de 0 a 255: la matriz cambia el color, no el lugar del píxel
 - `demo.py`: demo de texto (cifrar, descifrar, clave inválida, ataque)
-- `demo_imagen.py` (extra): demo de imagen; guarda original, cifrada y descifrada en `salida/`
+- `demo_imagen.py` (extra): demo de imagen; imprime la cuenta de un bloque de píxeles y guarda original, cifrada, encadenada y descifrada en `salida/`
 - `INFORME.md`: teoría, ejemplo resuelto, resultados, conclusiones y guion de presentación
 
 ## Uso

@@ -118,6 +118,57 @@
       </div>
       <p class="error" id="ataque-error" role="alert" hidden></p>
     </section>
+
+    <section class="imagenes" aria-labelledby="t-imagenes">
+      <h2 id="t-imagenes">Imágenes (módulo 256)</h2>
+      <p class="nota">Una imagen ya está hecha de números: cada píxel es un trío <span class="mate">(R, G, B)</span> con cuánto rojo, verde y azul tiene, de 0 a 255. No hace falta ASCII. Con la clave de arriba, cada canal se corta en bloques de n píxeles seguidos y se calcula <span class="mate">c = K · p (mod 256)</span>. Como 256 = 2⁸, la clave sirve si det K es impar.</p>
+      <div class="acciones">
+        <button type="button" class="boton" id="imagen-ejemplo">Usar la imagen de ejemplo</button>
+        <label class="boton secundario subir">
+          Subir una imagen
+          <input type="file" id="imagen-archivo" accept="image/*">
+        </label>
+      </div>
+      <p class="estado" id="imagen-estado" aria-live="polite"></p>
+      <p class="error" id="imagen-error" role="alert" hidden></p>
+
+      <div id="imagen-resultado" hidden>
+        <div class="galeria">
+          <figure>
+            <button type="button" class="elegir" id="imagen-original-boton" aria-label="Elegir un bloque de la imagen original">
+              <img id="imagen-original" alt="Imagen original">
+            </button>
+            <figcaption>Original <small>(haz clic para elegir un bloque)</small></figcaption>
+          </figure>
+          <figure>
+            <img id="imagen-cifrada" alt="Imagen cifrada bloque por bloque">
+            <figcaption>Cifrada: <span class="mate">c = K · p</span></figcaption>
+          </figure>
+          <figure>
+            <img id="imagen-encadenada" alt="Imagen cifrada con bloques encadenados">
+            <figcaption>Encadenada: <span class="mate">cᵢ = K · (pᵢ + cᵢ₋₁)</span></figcaption>
+          </figure>
+          <figure>
+            <img id="imagen-descifrada" alt="Imagen descifrada">
+            <figcaption>Descifrada <small id="imagen-identica"></small></figcaption>
+          </figure>
+        </div>
+
+        <div class="bloque-pixeles">
+          <h3 id="bloque-titulo"></h3>
+          <div class="fila-pixeles">
+            <span class="rotulo">original</span>
+            <div class="pixeles" id="pixeles-original"></div>
+          </div>
+          <ol class="canales" id="bloque-canales"></ol>
+          <div class="fila-pixeles">
+            <span class="rotulo">cifrado</span>
+            <div class="pixeles" id="pixeles-cifrado"></div>
+          </div>
+          <p class="nota">Los píxeles se quedan en el mismo lugar: la matriz cambia su color. Cada valor nuevo mezcla los n píxeles del bloque en ese canal, y los canales no se mezclan entre sí.</p>
+        </div>
+      </div>
+    </section>
   </main>
 
   <script>

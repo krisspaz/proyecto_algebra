@@ -60,7 +60,7 @@ Los dos cambian letras por letras usando aritmética módulo 26, pero César tra
 El inverso modular, el determinante por cofactores, la adjunta y la inversa módulo `m` están programados a mano, en `inversa.py`. La librería SymPy solo se usa para guardar matrices, multiplicarlas y comprobar que nuestra inversa da lo mismo que la suya. NumPy se usa en las imágenes, porque hay que multiplicar cientos de miles de bloques.
 
 **¿Cómo saben que funciona?**
-Con 26 pruebas automáticas (carpeta `tests/`), con la comparación contra SymPy en los módulos 26, 37, 113 y 256, y con el ejemplo HELP → HIAT hecho a mano, que el programa reproduce exactamente.
+Con 33 pruebas automáticas (carpeta `tests/`), con la comparación contra SymPy en los módulos 26, 37, 113 y 256, y con el ejemplo HELP → HIAT hecho a mano, que el programa reproduce exactamente.
 
 **¿Qué pasa si el mensaje no alcanza para el último bloque?**
 Se completa con X (en «Solo letras») o con espacios (en los otros alfabetos). Al descifrar con espacios, el texto se ve igual que el original.

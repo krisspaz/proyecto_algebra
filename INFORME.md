@@ -120,9 +120,9 @@ En los alfabetos que tienen espacio, el último bloque se completa con espacios 
 | `hill.py` | Conversión texto ↔ números, validación de la clave, cifrado y descifrado de texto. Tres alfabetos (mod 26, 37 y 113). Si el mensaje no es múltiplo de `n` se rellena con "X" o con espacios. |
 | `inversa.py` | Inverso modular (Euclides extendido), determinante por cofactores, adjunta e inversa módulo m, hechos a mano. |
 | `ataque.py` | Ataque de texto plano conocido, con un límite de intentos para textos muy repetitivos. |
-| `imagen.py` | Cifrado de imágenes por bloques de píxeles (mod 256). |
-| `app.py`, `templates/`, `static/` | Interfaz web: escribir el mensaje, editar la clave, ver el resultado y el paso a paso al instante, y lanzar el ataque. Python hace todos los cálculos; el navegador solo los muestra. |
-| `tests/` | 26 pruebas automáticas del cifrado, el ataque, las imágenes encadenadas y la API. |
+| `imagen.py` | Cifrado de imágenes por bloques de píxeles (mod 256), con y sin encadenar, y `explicar_bloque`, que muestra la cuenta de un bloque. |
+| `app.py`, `templates/`, `static/` | Interfaz web: escribir el mensaje, editar la clave, ver el resultado y el paso a paso al instante, lanzar el ataque y cifrar una imagen (la de ejemplo o una foto) viendo la cuenta de cualquier bloque de píxeles. Python hace todos los cálculos; el navegador solo los muestra. |
+| `tests/` | 33 pruebas automáticas del cifrado, el ataque, las imágenes (incluido el ejemplo de 5.2) y la API. |
 | `demo.py`, `demo_imagen.py` | Demostraciones ejecutables. |
 
 El determinante y la inversa módulo m están programados a mano en `inversa.py` con la fórmula de 2.3; `sympy` solo se usa para guardar las matrices y multiplicarlas, y como comprobación (`python inversa.py` compara ambos resultados). Para imágenes se usa `numpy`, porque hay que multiplicar cientos de miles de bloques.
@@ -177,7 +177,7 @@ Entonces, **la matriz cambia el color, no el lugar del píxel**: cada píxel cif
 
 Para descifrar se multiplica cada bloque por `K⁻¹ (mod 256)`, calculada con la misma adjunta de 2.3. Si el ancho no es múltiplo de `n`, se añaden columnas negras a la derecha y al descifrar se recortan.
 
-El código está en `imagen.py`. Ejecutar `python demo_imagen.py` (o `python demo_imagen.py foto.png` con una foto propia) imprime este mismo ejemplo y guarda `original.png`, `cifrada.png`, `cifrada_encadenada.png` y `descifrada.png` en `salida/`. La interfaz web también tiene una sección para subir una imagen y verla cifrada. La imagen descifrada coincide píxel a píxel con la original.
+El código está en `imagen.py`. Ejecutar `python demo_imagen.py` (o `python demo_imagen.py foto.png` con una foto propia) imprime este mismo ejemplo y guarda `original.png`, `cifrada.png`, `cifrada_encadenada.png` y `descifrada.png` en `salida/`. La interfaz web tiene una sección «Imágenes» que hace lo mismo con la imagen de ejemplo o con una foto: muestra la original, la cifrada, la encadenada y la descifrada, y al hacer clic en la original muestra la cuenta de ese bloque. La imagen descifrada coincide píxel a píxel con la original.
 
 ### 5.3 Lo que deja ver
 
