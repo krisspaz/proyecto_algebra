@@ -19,6 +19,7 @@ from imagen import (
     descifrar_imagen,
     descifrar_imagen_encadenado,
     es_clave_valida_imagen,
+    explicar_bloque,
 )
 
 K = Matrix([[6, 24, 1], [13, 16, 10], [20, 17, 15]])  # det = 441, impar
@@ -36,13 +37,31 @@ def imagen_sintetica(alto: int = 200, ancho: int = 301) -> np.ndarray:
     return img
 
 
+def tupla(v) -> str:
+    return "(" + ", ".join(str(x) for x in v) + ")"
+
+
+def mostrar_bloque(img: np.ndarray, fila: int, columna: int) -> None:
+    """Imprime qué le pasa a un bloque de píxeles: cambia el color, no el lugar."""
+    b = explicar_bloque(img, K, fila, columna)
+    print(f"\nEjemplo: píxeles de la fila {fila}, columnas {b['columnas'][0]} a {b['columnas'][-1]}")
+    print("  originales (R, G, B):", "  ".join(tupla(px) for px in b["original"]))
+    for nombre, c in zip(("rojo ", "verde", "azul "), b["canales"]):
+        print(f"  {nombre}: K·{tupla(c['p'])} = {tupla(c['Kp'])} ≡ {tupla(c['c'])} (mod 256)")
+    print("  cifrados   (R, G, B):", "  ".join(tupla(px) for px in b["cifrado"]))
+    print("  Los píxeles siguen en el mismo lugar; lo que cambia es su color.\n")
+
+
 if len(sys.argv) > 1:
     original = np.array(Image.open(sys.argv[1]).convert("RGB"))
+    fila_ejemplo, columna_ejemplo = original.shape[0] // 2, original.shape[1] // 2
 else:
     original = imagen_sintetica()
+    fila_ejemplo, columna_ejemplo = 60, 90  # dentro del círculo rojo
 
 print("Clave:", K.tolist(), "| det mod 256 =", int(K.det()) % 256,
       "| válida:", es_clave_valida_imagen(K))
+mostrar_bloque(original, fila_ejemplo, columna_ejemplo)
 
 cifrada = cifrar_imagen(original, K)
 descifrada = descifrar_imagen(cifrada, K, ancho=original.shape[1])

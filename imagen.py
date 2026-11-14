@@ -69,6 +69,33 @@ def descifrar_imagen(cifrada: np.ndarray, K: Matrix, ancho: int | None = None) -
     return plana[:, :ancho] if ancho is not None else plana
 
 
+def explicar_bloque(img: np.ndarray, K: Matrix, fila: int, columna: int) -> dict:
+    """Muestra a mano qué le pasa a un bloque de n píxeles al cifrar sin encadenar.
+
+    Toma los n píxeles de `fila` que forman el bloque donde cae `columna` y, canal
+    por canal, calcula p, K·p y K·p mod 256. Los píxeles no cambian de lugar:
+    solo cambian sus valores de color.
+    """
+    validar_clave_imagen(K)
+    n = K.shape[0]
+    img = rellenar(img, n)
+    columna = min(columna, img.shape[1] - 1)
+    columna -= columna % n  # inicio del bloque, igual que en _aplicar
+    pixeles = img.reshape(img.shape[0], img.shape[1], -1)[fila, columna:columna + n]
+    Kn = _a_numpy(K)
+    canales = []
+    for p in pixeles.T.astype(np.int64):  # una fila por canal
+        Kp = Kn @ p
+        canales.append({"p": p.tolist(), "Kp": Kp.tolist(), "c": (Kp % MOD_IMG).tolist()})
+    return {
+        "fila": fila,
+        "columnas": list(range(columna, columna + n)),
+        "canales": canales,  # [R, G, B] o [gris]
+        "original": [list(px) for px in zip(*(c["p"] for c in canales))],
+        "cifrado": [list(px) for px in zip(*(c["c"] for c in canales))],
+    }
+
+
 # --- Encadenamiento de bloques ------------------------------------------------
 # Sin encadenar, bloques iguales dan cifrados iguales y se ven las figuras.
 # Encadenando, cada bloque se suma con el cifrado anterior antes de multiplicar:

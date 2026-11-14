@@ -21,7 +21,7 @@ from hill import (
     limpiar,
     simbolos_ignorados,
 )
-from imagen import cifrar_imagen, cifrar_imagen_encadenado, descifrar_imagen_encadenado
+from imagen import cifrar_imagen, cifrar_imagen_encadenado, descifrar_imagen_encadenado, explicar_bloque
 
 CLAVES = [
     Matrix([[3, 2], [5, 7]]),
@@ -144,6 +144,22 @@ class TestImagenEncadenada(unittest.TestCase):
         encadenada = cifrar_imagen_encadenado(self.img, self.K)[0, :30].reshape(-1, 3, 3)
         self.assertEqual(len(np.unique(sin_encadenar, axis=0)), 1)
         self.assertGreater(len(np.unique(encadenada, axis=0)), 1)
+
+    def test_explicar_bloque_el_ejemplo_del_informe(self):
+        # tres píxeles (200, 40, 40) del círculo rojo, columnas 90 a 92 (INFORME 5.2)
+        img = np.full((1, 96, 3), (200, 40, 40), dtype=np.uint8)
+        b = explicar_bloque(img, self.K, 0, 91)
+        self.assertEqual(b["columnas"], [90, 91, 92])
+        self.assertEqual(b["canales"][0]["Kp"], [6200, 7800, 10400])
+        self.assertEqual(b["cifrado"], [[56, 216, 216], [120, 24, 24], [160, 32, 32]])
+
+    def test_explicar_bloque_coincide_con_cifrar(self):
+        rng = np.random.default_rng(0)
+        img = rng.integers(0, 256, (5, 31, 3), dtype=np.uint8)
+        cifrada = cifrar_imagen(img, self.K)
+        for columna in (0, 14, 30):
+            b = explicar_bloque(img, self.K, 2, columna)
+            self.assertEqual(b["cifrado"], cifrada[2, b["columnas"]].tolist())
 
 
 class TestAPI(unittest.TestCase):

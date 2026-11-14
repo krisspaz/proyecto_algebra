@@ -13,21 +13,6 @@
 | Rosemary Salguero | 20240569 |
 | Luis González | 20240594 |
 
-## Preliminares: imágenes y código
-
-Una imagen digital se representa como una cuadrícula de píxeles. En una imagen RGB de 8 bits por canal, cada píxel tiene tres números entre 0 y 255: rojo (R), verde (G) y azul (B). Por ejemplo, `(255, 0, 0)` representa rojo. No se asigna un carácter ASCII a cada color: ASCII codifica caracteres de texto; aquí trabajamos directamente con los valores numéricos de los canales. El archivo de imagen puede guardar esos valores con formatos y compresión distintos; el programa primero lo convierte a RGB para trabajar con sus píxeles.
-
-En nuestra implementación, cada canal se procesa por separado. Se toman grupos de píxeles horizontales y se multiplican por la matriz clave, reduciendo cada resultado módulo 256. Por ejemplo, para dos valores consecutivos del canal rojo y la clave `K = [[1, 1], [1, 2]]`:
-
-```text
-p = (100, 150)ᵀ
-c = K · p mod 256 = (250, 400)ᵀ mod 256 = (250, 144)ᵀ
-```
-
-Así cambian los valores de color en esas posiciones; este procedimiento no cambia de lugar los píxeles. Como `det(K) = 1` es impar, la matriz tiene inversa módulo 256 y permite recuperar los valores originales. Si el ancho de la imagen no es múltiplo del tamaño del bloque, se agregan columnas de relleno y se recortan al descifrar. La sección 5 explica el encadenamiento y las limitaciones de seguridad: este ejemplo es educativo y no ofrece cifrado seguro para imágenes reales.
-
-El código Python está disponible en [imagen.py](imagen.py) y la demostración en [demo_imagen.py](demo_imagen.py). Para ejecutarla, instalen las dependencias de [requirements.txt](requirements.txt) y usen `python demo_imagen.py` o `python demo_imagen.py foto.png`; los resultados se guardan en `salida/`.
-
 ## Objetivos
 
 **General.** Aplicar matrices, determinantes e inversas al cifrado y descifrado de mensajes con el cifrado de Hill.
@@ -156,19 +141,51 @@ En `demo.py` el atacante conoce el inicio del mensaje "ATAQUEN AL AMANECER POR�
 
 ## 5. Extensión: cifrado de imágenes (mod 256)
 
-Una imagen digital es una matriz de píxeles con valores de 0 a 255 por canal. La misma idea funciona cambiando el módulo a 256: cada canal se recorre por filas, se agrupan `n` píxeles horizontales consecutivos en un vector y se aplica `c = K·p (mod 256)`.
+### 5.1 Cómo se representa una imagen
 
-Como `256 = 2⁸`, el único factor primo es 2, y por el teorema de 2.4 **la clave es válida si y solo si `det(K)` es impar**. La clave 3×3 del demo de texto tiene `det = 441`, así que sirve para ambos.
+Una imagen digital es una cuadrícula de píxeles. En una imagen RGB de 8 bits por canal, cada píxel tiene tres números entre 0 y 255: cuánto rojo (R), cuánto verde (G) y cuánto azul (B). Por ejemplo, `(255, 0, 0)` es rojo puro, `(0, 0, 0)` es negro y `(255, 255, 255)` es blanco. Una foto de 300×200 píxeles son entonces tres matrices de 200×300 números, una por canal.
 
-Si el ancho no es múltiplo de `n`, se añaden columnas negras a la derecha; al descifrar se recortan.
+**No se usa ASCII.** ASCII sirve para convertir caracteres de texto en números, pero una imagen ya está hecha de números: el programa trabaja directamente con los valores de los canales. El archivo (PNG, JPG…) puede guardar esos valores comprimidos; el programa primero lo abre y lo convierte a RGB para tener los números de cada píxel.
 
-Ejecutar `python demo_imagen.py` genera `salida/original.png`, `salida/cifrada.png`, `salida/cifrada_encadenada.png` y `salida/descifrada.png`. La imagen descifrada coincide píxel a píxel con la original.
+### 5.2 Cifrar los píxeles
+
+Cada canal se procesa por separado. Se recorre por filas y se agrupan `n` píxeles horizontales seguidos en un vector `p`, que se cifra igual que un bloque de letras:
+
+```
+c = K · p   (mod 256)
+```
+
+Se trabaja módulo 256 porque cada resultado tiene que volver a ser un valor de color entre 0 y 255. Por ejemplo, con `K = [[1, 1], [1, 2]]` y dos valores seguidos del canal rojo `p = (100, 150)ᵀ`, sale `K·p = (250, 400)ᵀ ≡ (250, 144)ᵀ (mod 256)`.
+
+Como `256 = 2⁸`, el único factor primo es 2, y por el teorema de 2.4 **la clave es válida si y solo si `det(K)` es impar**. La clave 3×3 del demo de texto, `K = [[6, 24, 1], [13, 16, 10], [20, 17, 15]]`, tiene `det = 441`, así que sirve para ambos.
+
+**Ejemplo con píxeles reales.** En la imagen de prueba (figura de abajo), los píxeles de la fila 60, columnas 90 a 92, están dentro del círculo rojo y valen los tres `(200, 40, 40)`. Con la clave anterior:
+
+```
+Canal rojo:          p = (200, 200, 200)ᵀ   K·p = (6200, 7800, 10400)ᵀ ≡ (56, 120, 160)ᵀ
+Canales verde y azul: p = (40, 40, 40)ᵀ      K·p = (1240, 1560, 2080)ᵀ  ≡ (216, 24, 32)ᵀ
+```
+
+| Columna | 90 | 91 | 92 |
+|---|---|---|---|
+| Original (R, G, B) | (200, 40, 40) | (200, 40, 40) | (200, 40, 40) |
+| Cifrado (R, G, B) | (56, 216, 216) | (120, 24, 24) | (160, 32, 32) |
+
+![Tres píxeles del círculo rojo antes y después de cifrar](figuras/pixeles.png)
+
+Entonces, **la matriz cambia el color, no el lugar del píxel**: cada píxel cifrado sigue en la misma fila y columna, pero con otros valores de R, G y B. Cada valor nuevo mezcla los tres píxeles vecinos del bloque en ese mismo canal; por ejemplo, el rojo nuevo de la columna 91 es `13·200 + 16·200 + 10·200 = 7800 ≡ 120`. Los canales no se mezclan entre sí: el rojo solo depende de rojos. Por eso tres píxeles iguales terminan con tres colores distintos.
+
+Para descifrar se multiplica cada bloque por `K⁻¹ (mod 256)`, calculada con la misma adjunta de 2.3. Si el ancho no es múltiplo de `n`, se añaden columnas negras a la derecha y al descifrar se recortan.
+
+El código está en `imagen.py`. Ejecutar `python demo_imagen.py` (o `python demo_imagen.py foto.png` con una foto propia) imprime este mismo ejemplo y guarda `original.png`, `cifrada.png`, `cifrada_encadenada.png` y `descifrada.png` en `salida/`. La interfaz web también tiene una sección para subir una imagen y verla cifrada. La imagen descifrada coincide píxel a píxel con la original.
+
+### 5.3 Lo que deja ver
 
 ![Imagen original, cifrada y descifrada](figuras/imagen_sin_encadenar.png)
 
-**Resultado clave:** en la imagen cifrada **se siguen distinguiendo las figuras**. Una zona de color uniforme produce siempre el mismo bloque y, por tanto, el mismo bloque cifrado: el cifrado cambia los colores, pero no oculta la estructura. Es el mismo problema del modo ECB en cifrados modernos.
+**Resultado clave:** en la imagen cifrada **se siguen distinguiendo las figuras**. El bloque siguiente del círculo (columnas 93 a 95) vuelve a ser `(200, 40, 40)` tres veces, así que se cifra otra vez como `(56, 216, 216)`, `(120, 24, 24)`, `(160, 32, 32)`. Una zona de color uniforme produce siempre el mismo bloque y, por tanto, el mismo bloque cifrado: el cifrado cambia los colores, pero no oculta la estructura. Es el mismo problema del modo ECB en cifrados modernos.
 
-### 5.1 Encadenar bloques
+### 5.4 Encadenar bloques
 
 Para esconder las figuras, cada bloque se suma con el bloque cifrado anterior antes de multiplicar por la clave:
 
@@ -182,7 +199,7 @@ Para descifrar se despeja `p_i`, que solo necesita la inversa de siempre:
 p_i = K⁻¹ · c_i − c_{i-1}   (mod 256)
 ```
 
-Ahora dos bloques iguales casi nunca dan el mismo cifrado, porque cada uno arrastra lo que pasó antes. En `salida/cifrada_encadenada.png` la imagen se ve como ruido y ya no se distinguen las figuras, y al descifrar se recupera píxel a píxel. Es la misma idea del modo CBC de los cifrados modernos (allí se usa XOR en lugar de suma). Está en `imagen.cifrar_imagen_encadenado` y `imagen.descifrar_imagen_encadenado`.
+Ahora dos bloques iguales casi nunca dan el mismo cifrado, porque cada uno arrastra lo que pasó antes. Con el ejemplo de 5.2, el bloque de las columnas 90 a 92 sale `(131, 9, 245)`, `(39, 8, 159)`, `(11, 132, 197)`, y el de las columnas 93 a 95, que era idéntico, sale `(253, 82, 67)`, `(253, 53, 43)`, `(24, 24, 94)`. En `salida/cifrada_encadenada.png` la imagen se ve como ruido y ya no se distinguen las figuras, y al descifrar se recupera píxel a píxel. Es la misma idea del modo CBC de los cifrados modernos (allí se usa XOR en lugar de suma). Está en `imagen.cifrar_imagen_encadenado` y `imagen.descifrar_imagen_encadenado`.
 
 ![Imagen cifrada sin encadenar, encadenada y descifrada](figuras/imagen_encadenada.png)
 
