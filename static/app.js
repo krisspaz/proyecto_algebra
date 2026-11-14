@@ -123,6 +123,7 @@ function pintarEstado(r) {
     : `. Como mcd(${r.det_mod}, ${r.mod}) = ${r.mcd}, la clave no tiene inversa y no sirve.`;
   el.className = r.valida ? "estado ok" : "estado mal";
   el.replaceChildren(calculo, explicacion);
+  $("matriz").classList.toggle("mala", !r.valida);
 }
 
 // --- Mensaje y paso a paso --------------------------------------------------
@@ -154,19 +155,43 @@ function pintarPasos(r) {
   if (r.total_bloques > r.pasos.length) texto += ` Se muestran ${r.pasos.length} de ${r.total_bloques} bloques.`;
   nota.textContent = texto;
 
+  // Cada bloque se dibuja como la multiplicación del pizarrón:
+  //   HE   p = [7 4]ᵀ   K · p = [33 34]ᵀ ≡ [7 8]ᵀ   →  HI
   lista.replaceChildren(
     ...r.pasos.map((p) => {
-      const li = crear("li");
+      const li = crear("li", "paso");
       li.append(
-        crear("span", "letras", visible(p.bloque)),
-        crear("span", "", `${letra} = ${tupla(p.vector)}`),
-        crear("span", "gris", `${matrizUsada}·${letra} = ${tupla(p.producto)}`),
-        crear("span", "", `≡ ${tupla(p.reducido)}`),
-        crear("span", "salida-bloque", visible(p.salida))
+        crear("span", "bloque-texto", visible(p.bloque)),
+        termino(crear("span", "var", letra), crear("span", "signo", "="), vectorColumna(p.vector)),
+        termino(
+          crear("span", "clave-var", matrizUsada),
+          crear("span", "signo", "·"),
+          crear("span", "var", letra),
+          crear("span", "signo", "="),
+          vectorColumna(p.producto, "sin-reducir"),
+          crear("span", "signo", "≡"),
+          vectorColumna(p.reducido)
+        ),
+        crear("span", "signo", "→"),
+        crear("span", "bloque-salida", visible(p.salida))
       );
       return li;
     })
   );
+}
+
+function vectorColumna(valores, clase = "") {
+  const v = crear("span", `matriz vector ${clase}`.trim());
+  v.style.setProperty("--n", 1);
+  v.setAttribute("aria-label", tupla(valores));
+  v.append(...valores.map((x) => crear("span", "", String(x))));
+  return v;
+}
+
+function termino(...partes) {
+  const t = crear("span", "termino");
+  t.append(...partes);
+  return t;
 }
 
 function pintarTextos() {
