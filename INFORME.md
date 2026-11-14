@@ -1,13 +1,17 @@
 # Cifrado de Hill: álgebra lineal aplicada a la criptografía
 
 **Curso:** Álgebra Lineal, sección B — Segundo semestre 2026
+**Grupo:** 15
 **Tema:** Criptografía de clave privada
+**Repositorio:** https://github.com/krisspaz/proyecto_algebra
 **Integrantes:**
 
 | Nombre | Carné |
 |---|---|
-| Kris Paz | (pendiente) |
 | Milton Beltrán | 20210030 |
+| Kristopher Paz | 20210408 |
+| Rosemary Salguero | 20240569 |
+| Luis González | 20240594 |
 
 ## Objetivos
 
