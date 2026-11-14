@@ -103,6 +103,18 @@ class TestAtaque(unittest.TestCase):
                 recuperada = recuperar_clave(MENSAJE, c, K.shape[0], a)
                 self.assertEqual(recuperada, K.applyfunc(lambda x: x % a.mod))
 
+    def test_error_explica_por_que_no_se_puede(self):
+        # 4 bloques conocidos → una sola P posible, con det P ≡ 10 y mcd(10, 26) = 2
+        K = Matrix([[0, 3, 1, 9], [19, 22, 6, 12], [23, 7, 17, 4], [22, 9, 24, 20]])
+        plano = "¿Nos vemos mañana? Aula #204"
+        cifrado = cifrar(plano, K)[:16]
+        with self.assertRaises(ValueError) as ctx:
+            recuperar_clave(plano, cifrado, 4)
+        mensaje = str(ctx.exception)
+        self.assertIn("4 bloques", mensaje)
+        self.assertIn("mcd(10, 26) = 2", mensaje)
+        self.assertIn("Todo el teclado", mensaje)  # sugiere un módulo primo
+
     def test_texto_repetitivo_no_se_cuelga(self):
         K = CLAVES[2]
         inicio = time.time()
