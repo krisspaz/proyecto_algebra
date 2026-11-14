@@ -39,6 +39,15 @@ El atacante prueba con otra combinación de bloques hasta encontrar una con `mcd
 **¿Por qué a veces el ataque no encuentra la clave?**
 Porque los bloques conocidos tienen que formar una matriz `P` invertible módulo `m`. Con `m = 26 = 2 · 13` eso falla seguido. Ejemplo real: con «Solo letras» y una clave 4×4, el mensaje «¿Nos vemos mañana? Aula #204» da 4 bloques, y su `det P ≡ 10` con `mcd(10, 26) = 2`. Incluso con el mensaje completo ninguna combinación sirve: vistos como pares e impares, los bloques solo generan un espacio de dimensión 3, no 4. Con esos datos la clave no queda determinada. Ningún método la puede sacar sin más texto. Con un módulo primo, como 113, casi nunca pasa. (`04`)
 
+**¿Cómo codifican las imágenes? ¿Usan un código ASCII para cada color?**
+No hace falta ASCII: una imagen ya está hecha de números. Cada píxel es un trío `(R, G, B)` de 0 a 255 (cuánto rojo, verde y azul tiene). Se toman 3 píxeles seguidos, se arma el vector de sus rojos (y aparte el de verdes y el de azules), se multiplica por `K` y se reduce módulo 256 para que vuelva a ser un color válido. Ejemplo: tres píxeles `(200, 40, 40)` → `K·(200, 200, 200) = (6200, 7800, 10400) ≡ (56, 120, 160)` en el rojo. (`04`)
+
+**¿La matriz cambia el color o el píxel?**
+El color. Los píxeles se quedan en su lugar; lo que cambia son sus valores de R, G y B. Cada valor nuevo mezcla los 3 píxeles vecinos del bloque en ese canal, y los canales no se mezclan entre sí. En la demo se puede hacer clic en cualquier punto de la imagen y ver esa cuenta. (`04`, `05`)
+
+**¿Por qué la clave para imágenes necesita det impar?**
+Porque se trabaja módulo `256 = 2⁸`: la clave sirve si `mcd(det K, 256) = 1`, y eso pasa justo cuando `det K` es impar. Es el mismo teorema que con 26. (`03`)
+
 **¿Por qué en la imagen cifrada se siguen viendo las figuras?**
 Porque bloques iguales dan cifrados iguales. Una zona de un solo color se convierte en otra zona de un solo color, así que la forma se mantiene. Encadenar los bloques (sumar a cada uno el cifrado anterior) lo arregla. (`04`)
 

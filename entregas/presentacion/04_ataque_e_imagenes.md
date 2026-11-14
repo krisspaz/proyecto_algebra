@@ -55,6 +55,26 @@ En la demo del programa (`demo.py`) el espía conoce el inicio de «ATAQUEN AL A
 
 Una imagen digital es una **matriz de píxeles**. Cada píxel tiene tres canales (rojo, verde, azul) con valores de 0 a 255. Por eso se puede usar el mismo método **módulo 256**: se agrupan píxeles vecinos de 3 en 3, cada grupo es un vector y se multiplica por la clave.
 
+### Cómo se codifica una imagen (la catedrática lo preguntó)
+
+- **No se usa ASCII.** ASCII convierte letras en números, pero una imagen *ya son números*: cada píxel es un trío `(R, G, B)` que dice cuánto rojo, verde y azul tiene, de 0 a 255. `(255, 0, 0)` es rojo puro, `(0, 0, 0)` negro, `(255, 255, 255)` blanco.
+- **Cada canal se cifra por separado.** Se toman 3 píxeles seguidos de una fila y se arma el vector de sus rojos, el de sus verdes y el de sus azules. Cada vector se multiplica por `K` y se reduce módulo 256 (para que el resultado vuelva a ser un color de 0 a 255).
+- **La matriz cambia el color, no el lugar del píxel.** Cada píxel cifrado sigue en la misma fila y columna, pero con otro color. Cada valor nuevo mezcla los 3 píxeles del bloque en ese canal; el rojo solo se mezcla con rojos.
+
+**Ejemplo con la clave del programa** `K = [[6, 24, 1], [13, 16, 10], [20, 17, 15]]` (det = 441, impar). Tres píxeles del círculo rojo, los tres `(200, 40, 40)`:
+
+```
+Rojos:            K · (200, 200, 200) = (6200, 7800, 10400) ≡ (56, 120, 160)   (mod 256)
+Verdes y azules:  K · (40, 40, 40)    = (1240, 1560, 2080)  ≡ (216, 24, 32)
+```
+
+| | píxel 1 | píxel 2 | píxel 3 |
+|---|---|---|---|
+| Original | (200, 40, 40) | (200, 40, 40) | (200, 40, 40) |
+| Cifrado | (56, 216, 216) | (120, 24, 24) | (160, 32, 32) |
+
+Tres píxeles iguales salen de tres colores distintos. Pero el bloque de al lado también es `(200, 40, 40)` tres veces, así que sale **otra vez igual**. Eso es lo que se ve abajo. Figura: `figuras/pixeles.png`.
+
 **Regla de la clave:** `256 = 2⁸`, así que el único factor es 2. Por el teorema de `03_la_matematica.md`, la clave sirve si y solo si **`det K` es impar**.
 
 ### Lo que se observa (figura `figuras/imagen_sin_encadenar.png`)

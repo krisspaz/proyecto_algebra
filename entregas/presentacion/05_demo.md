@@ -70,11 +70,16 @@ Qué decir:
 Qué decir:
 > El atacante no conocía la clave, solo el mensaje y su cifrado. Resolvió `K = C · P⁻¹` y la sacó al instante.
 
-### 6. Imágenes (sin abrir nada)
+### 6. Imágenes
 
-Para las imágenes no hace falta correr nada: usen las figuras del repo en las diapositivas (`figuras/imagen_sin_encadenar.png` y `figuras/imagen_encadenada.png`).
+1. Bajen a **«Imágenes (módulo 256)»**, al final de la página. Usa la misma clave de arriba.
+2. Pulsen **«Usar la imagen de ejemplo»**. Aparecen cuatro imágenes: original, cifrada (se ven las figuras), encadenada (ruido) y descifrada (idéntica).
+3. Hagan clic en el **círculo rojo** de la original. Abajo aparece «Un bloque de cerca»: los píxeles originales con su `(R, G, B)`, la cuenta `K · p ≡ c (mod 256)` de cada canal y los píxeles cifrados.
 
-Si quieren generarlas en vivo: `.venv/bin/python demo_imagen.py` las guarda en la carpeta `salida/`.
+Qué decir:
+> Una imagen ya son números: cada píxel es cuánto rojo, verde y azul tiene, de 0 a 255. No usamos ASCII. Multiplicamos los píxeles de 3 en 3 por la clave, módulo 256. Los píxeles no se mueven: cambia su color. Y como el bloque de al lado es igual, sale igual; por eso se sigue viendo el círculo.
+
+También se puede pulsar **«Subir una imagen»** y usar una foto propia. Si la clave tiene determinante par, la sección avisa que no sirve para imágenes (256 = 2⁸). Captura de respaldo: `capturas/6_imagenes.png`. Las figuras del informe están en `figuras/` (`pixeles.png`, `imagen_sin_encadenar.png`, `imagen_encadenada.png`).
 
 ## Si algo falla
 

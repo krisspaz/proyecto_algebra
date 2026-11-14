@@ -63,6 +63,7 @@ Instrucciones completas en `05_demo.md`. Tengan capturas de respaldo por si algo
 2. Pulsar «Descifrar este resultado» y mostrar que vuelve el original.
 3. Cambiar un número de la clave hasta que deje de servir y mostrar el aviso.
 4. En «Ataque», pulsar «Usar el mensaje y el cifrado de arriba» y «Recuperar la clave».
+5. Si hay tiempo: en «Imágenes», pulsar «Usar la imagen de ejemplo» y hacer clic en el círculo rojo para ver la cuenta de ese bloque.
 
 ## Parte 5 · Cómo se rompe y qué pasa con imágenes (1 min) — Rosemary
 
@@ -76,7 +77,7 @@ K = C · P⁻¹   (mod 26)
 
 Romper el cifrado es **resolver un sistema lineal**. Con una clave 3×3 bastan 9 letras conocidas, siempre que sus bloques formen una `P` invertible.
 
-**Diapositiva 10. Imágenes:** mostrar `figuras/imagen_sin_encadenar.png`. Se cifran los píxeles módulo 256, pero **las figuras se siguen viendo**, porque bloques iguales dan cifrados iguales. Luego mostrar `figuras/imagen_encadenada.png`: si cada bloque se mezcla con el cifrado anterior, la imagen queda como ruido.
+**Diapositiva 10. Imágenes:** primero `figuras/pixeles.png`: una imagen ya son números, cada píxel es `(R, G, B)` de 0 a 255 (no se usa ASCII). Se multiplican 3 píxeles seguidos por `K` módulo 256 y **cambia el color, no el lugar del píxel**: tres píxeles `(200, 40, 40)` salen `(56, 216, 216)`, `(120, 24, 24)` y `(160, 32, 32)`. Después mostrar `figuras/imagen_sin_encadenar.png`. Se cifran los píxeles módulo 256, pero **las figuras se siguen viendo**, porque bloques iguales dan cifrados iguales. Luego mostrar `figuras/imagen_encadenada.png`: si cada bloque se mezcla con el cifrado anterior, la imagen queda como ruido.
 
 ## Parte 6 · Conclusión (1 min) — Luis
 
