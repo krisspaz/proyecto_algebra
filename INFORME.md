@@ -1,9 +1,10 @@
 # Cifrado de Hill: álgebra lineal aplicada a la criptografía
 
-**Curso:** Álgebra Lineal, sección B — Segundo semestre 2026
-**Grupo:** 15
-**Tema:** Criptografía de clave privada
+**Curso:** Álgebra Lineal, sección B — Segundo semestre 2026\
+**Grupo:** 15\
+**Tema:** Criptografía de clave privada\
 **Repositorio:** https://github.com/krisspaz/proyecto_algebra
+
 **Integrantes:**
 
 | Nombre | Carné |
@@ -162,8 +163,8 @@ Como `256 = 2⁸`, el único factor primo es 2, y por el teorema de 2.4 **la cla
 **Ejemplo con píxeles reales.** En la imagen de prueba (figura de abajo), los píxeles de la fila 60, columnas 90 a 92, están dentro del círculo rojo y valen los tres `(200, 40, 40)`. Con la clave anterior:
 
 ```
-Canal rojo:          p = (200, 200, 200)ᵀ   K·p = (6200, 7800, 10400)ᵀ ≡ (56, 120, 160)ᵀ
-Canales verde y azul: p = (40, 40, 40)ᵀ      K·p = (1240, 1560, 2080)ᵀ  ≡ (216, 24, 32)ᵀ
+Rojo:           p = (200, 200, 200)ᵀ   K·p = (6200, 7800, 10400)ᵀ   ≡ (56, 120, 160)ᵀ
+Verde y azul:   p = (40, 40, 40)ᵀ      K·p = (1240, 1560, 2080)ᵀ    ≡ (216, 24, 32)ᵀ
 ```
 
 | Columna | 90 | 91 | 92 |
@@ -228,5 +229,5 @@ Por eso el encadenamiento **no vuelve seguro al cifrado**: solo hace que bloques
 2. **Idea de Hill** (2 min): letras → números → bloques → `c = K·p mod 26`. Ejemplo "HELP" → "HIAT" en la pizarra.
 3. **La matemática** (3 min): inverso modular, `mcd(det, 26) = 1`, contraejemplo `[[2,4],[6,8]]` ("NA" y "AA" chocan).
 4. **Demo en vivo** (2 min): abrir la interfaz (`python app.py`), cifrar un mensaje con signos y tildes en «Todo el teclado», pulsar «Descifrar este resultado», cambiar una casilla de la clave hasta que deje de servir. Al final, en la sección «Ataque», pulsar «Usar el mensaje y el cifrado de arriba» y «Recuperar la clave».
-5. **Imágenes** (1 min): mostrar `salida/original.png` junto a `salida/cifrada.png` (se ven las figuras) y `salida/cifrada_encadenada.png` (ya no se ven). Aclarar que la clave sigue igual de expuesta.
+5. **Imágenes** (1 min): cada píxel ya es `(R, G, B)` de 0 a 255 (no se usa ASCII); la matriz cambia el color, no el lugar del píxel (`figuras/pixeles.png`). En la sección «Imágenes» de la interfaz se ve la original, la cifrada (se ven las figuras) y la encadenada (ya no se ven). Aclarar que la clave sigue igual de expuesta.
 6. **Conclusión** (1 min): la linealidad es la fortaleza matemática y la debilidad criptográfica.
