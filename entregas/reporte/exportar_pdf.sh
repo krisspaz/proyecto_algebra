@@ -50,6 +50,14 @@ figure { margin: 0.8em 0; text-align: center; break-inside: avoid; }
 img { max-width: 100% !important; height: auto !important; box-sizing: border-box; }
 figure img, p > img { border: 1px solid var(--linea); border-radius: 3px; }
 figcaption { font-size: 0.82em; color: var(--gris); margin-top: 0.35em; }
+.caratula { height: 23.3cm; display: flex; flex-direction: column; justify-content: center;
+            align-items: center; text-align: center; break-after: page; font-family: "Avenir Next", sans-serif; }
+.caratula p { text-align: center; margin: 0.3em 0; color: var(--gris); font-size: 1.05em; }
+.caratula h1 { font-size: 2.4em; border-top: 5px solid var(--acento); border-bottom: 5px solid var(--acento);
+               padding: 0.5em 0; margin: 1.2em 0 0.8em; text-align: center; }
+.caratula p strong { color: var(--acento); font-size: 1.3em; }
+.caratula table { margin: 0.8em auto 1.6em; font-size: 1.05em; }
+.caratula td, .caratula th { text-align: left; }
 EOF
 
 pandoc "$RAIZ/INFORME.md" -s --embed-resources --resource-path="$RAIZ" -o "$HTML" -V lang=es \

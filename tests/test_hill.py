@@ -24,7 +24,14 @@ from hill import (
     limpiar,
     simbolos_ignorados,
 )
-from imagen import cifrar_imagen, cifrar_imagen_encadenado, descifrar_imagen_encadenado, explicar_bloque
+from imagen import (
+    cifrar_imagen,
+    cifrar_imagen_encadenado,
+    descifrar_imagen_encadenado,
+    explicar_bloque,
+    imagen_de_prueba,
+)
+from resultados import correlacion_vecinos, proporcion_teorica
 
 CLAVES = [
     Matrix([[3, 2], [5, 7]]),
@@ -163,6 +170,23 @@ class TestImagenEncadenada(unittest.TestCase):
         for columna in (0, 14, 30):
             b = explicar_bloque(img, self.K, 2, columna)
             self.assertEqual(b["cifrado"], cifrada[2, b["columnas"]].tolist())
+
+
+class TestResultados(unittest.TestCase):
+    def test_formula_de_claves_validas_coincide_con_contarlas(self):
+        # las 26⁴ matrices 2×2: det = ad − bc, y sirven las que tienen mcd(det, 26) = 1
+        a, b, c, d = np.meshgrid(*[np.arange(26)] * 4, indexing="ij")
+        det = (a * d - b * c) % 26
+        validas = int(np.sum((det % 2 != 0) & (det % 13 != 0)))
+        self.assertEqual(validas, 157_248)
+        self.assertEqual(proporcion_teorica(2, 26) * 26**4, validas)
+
+    def test_encadenar_borra_el_parecido_entre_bloques(self):
+        img = imagen_de_prueba()
+        K = Matrix([[6, 24, 1], [13, 16, 10], [20, 17, 15]])
+        # sin encadenar, cada píxel se parece al del mismo lugar en el bloque siguiente
+        self.assertGreater(correlacion_vecinos(cifrar_imagen(img, K), 3), 0.5)
+        self.assertLess(abs(correlacion_vecinos(cifrar_imagen_encadenado(img, K), 3)), 0.05)
 
 
 class TestAPI(unittest.TestCase):
