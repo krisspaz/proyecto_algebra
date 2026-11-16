@@ -69,10 +69,18 @@ Los dos cambian letras por letras usando aritmética módulo 26, pero César tra
 El inverso modular, el determinante por cofactores, la adjunta y la inversa módulo `m` están programados a mano, en `inversa.py`. La librería SymPy solo se usa para guardar matrices, multiplicarlas y comprobar que nuestra inversa da lo mismo que la suya. NumPy se usa en las imágenes, porque hay que multiplicar cientos de miles de bloques.
 
 **¿Cómo saben que funciona?**
-Con 33 pruebas automáticas (carpeta `tests/`), con la comparación contra SymPy en los módulos 26, 37, 113 y 256, y con el ejemplo HELP → HIAT hecho a mano, que el programa reproduce exactamente.
+Con 35 pruebas automáticas (carpeta `tests/`), con la comparación contra SymPy en los módulos 26, 37, 113 y 256, y con el ejemplo HELP → HIAT hecho a mano, que el programa reproduce exactamente.
 
 **¿Qué pasa si el mensaje no alcanza para el último bloque?**
 Se completa con X (en «Solo letras») o con espacios (en los otros alfabetos). Al descifrar con espacios, el texto se ve igual que el original.
+
+## Sobre las aplicaciones
+
+**¿Para qué sirve esto en la vida real?**
+Para cifrar mensajes reales (con «Todo el teclado» se cifra cualquier frase con tildes y signos), fotos y, en general, cualquier archivo, porque todo archivo son bytes de 0 a 255, como los píxeles. Y la idea sigue viva: AES, el cifrado de WhatsApp, `https` y los bancos, tiene un paso (*MixColumns*) que multiplica bloques de 4 bytes por una matriz 4×4. (`../guias/01_contexto_y_proyecto.pdf`, sección 6)
+
+**Si AES multiplica por una matriz, ¿por qué no se rompe igual que Hill?**
+Porque AES alterna esa multiplicación con pasos **no lineales** (las S-boxes) y repite todo 10 a 14 veces. El resultado ya no es una transformación lineal, así que no se puede despejar `K = C · P⁻¹`.
 
 ## Si no saben una respuesta
 

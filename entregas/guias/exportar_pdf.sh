@@ -1,0 +1,71 @@
+#!/bin/bash
+# Arma un PDF por cada guía (01_..., 02_..., 03_...md): pandoc -> HTML -> Chromium headless.
+set -e
+cd "$(dirname "$0")"
+RAIZ="$(cd ../.. && pwd)"
+
+CSS="$PWD/.guias.css"
+CHROME="/Applications/Chromium.app/Contents/MacOS/Chromium"
+[ -x "$CHROME" ] || CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+
+cat > "$CSS" <<'EOF'
+:root { --acento: #1f4e79; --acento-claro: #e8f0f8; --texto: #1d1d1f; --gris: #5f6368; --linea: #d5dbe1; }
+@page {
+  size: letter;
+  margin: 1.9cm 2cm 2.1cm;
+  @bottom-left  { content: "Grupo 15 · Cifrado de Hill · Guías del proyecto";
+                  font: 8pt "Avenir Next", sans-serif; color: #8a9099; }
+  @bottom-right { content: counter(page) " / " counter(pages);
+                  font: 8pt "Avenir Next", sans-serif; color: #8a9099; }
+}
+html { font-size: 10.6pt; }
+body {
+  font-family: "Charter", "Iowan Old Style", Georgia, serif;
+  color: var(--texto); line-height: 1.5; max-width: none; margin: 0; padding: 0;
+  hyphens: auto; text-align: justify;
+}
+header#title-block-header { border-top: 6px solid var(--acento); padding-top: 0.7em; margin-bottom: 1.2em; }
+h1.title { font-family: "Avenir Next", "Helvetica Neue", sans-serif; font-size: 2em; line-height: 1.15;
+           color: var(--acento); margin: 0 0 0.25em; text-align: left; }
+p.subtitle { font-family: "Avenir Next", "Helvetica Neue", sans-serif; color: var(--gris);
+             font-size: 1.05em; margin: 0; text-align: left; }
+h2, h3, h4, th, figcaption { font-family: "Avenir Next", "Helvetica Neue", sans-serif; text-align: left; }
+h2 { font-size: 1.3em; color: var(--acento); margin: 1.4em 0 0.45em; padding-bottom: 0.2em;
+     border-bottom: 1.5px solid var(--acento-claro); break-after: avoid; }
+h3 { font-size: 1.08em; margin: 1.1em 0 0.35em; break-after: avoid; }
+h4 { font-size: 0.98em; color: var(--gris); margin: 0.9em 0 0.3em; break-after: avoid; }
+p, li { margin: 0.4em 0; }
+ol, ul { padding-left: 1.4em; }
+li::marker { color: var(--acento); font-weight: 600; }
+strong { color: #000; }
+a { color: var(--acento); }
+blockquote { margin: 0.6em 0; padding: 0.4em 0.9em; background: var(--acento-claro);
+             border-left: 3px solid var(--acento); border-radius: 3px; }
+blockquote p { margin: 0.2em 0; }
+code { font-family: "SF Mono", Menlo, monospace; font-size: 0.86em; background: #f3f5f7;
+       padding: 0.05em 0.3em; border-radius: 3px; }
+pre { background: #f6f8fa; border: 1px solid var(--linea); border-left: 3px solid var(--acento);
+      border-radius: 3px; padding: 0.55em 0.9em; white-space: pre-wrap; break-inside: avoid; text-align: left; }
+pre code { background: none; padding: 0; font-size: 0.84em; line-height: 1.45; }
+table { border-collapse: collapse; margin: 0.6em 0; font-size: 0.9em; break-inside: avoid; width: 100%; }
+col { width: auto !important; }
+thead th { text-align: left; font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.05em;
+           color: var(--acento); border-bottom: 2px solid var(--acento); padding: 4px 8px; }
+td { padding: 4px 8px; border-bottom: 1px solid var(--linea); text-align: left; vertical-align: top; }
+figure { margin: 0.8em auto; text-align: center; break-inside: avoid; }
+img { max-width: 100% !important; max-height: 9.5cm; height: auto !important; box-sizing: border-box;
+      border: 1px solid var(--linea); border-radius: 3px; }
+figcaption { font-size: 0.82em; color: var(--gris); margin-top: 0.35em; }
+EOF
+
+for MD in 0*.md; do
+  NOMBRE="${MD%.md}"
+  HTML="$PWD/.$NOMBRE.html"
+  pandoc "$MD" -s --embed-resources --resource-path="$RAIZ" -o "$HTML" -V lang=es --css "$CSS"
+  "$CHROME" --headless --disable-gpu --no-sandbox \
+    --virtual-time-budget=10000 --run-all-compositor-stages-before-draw \
+    --no-pdf-header-footer --print-to-pdf="$PWD/$NOMBRE.pdf" "file://$HTML" 2>/dev/null
+  rm -f "$HTML"
+  echo "Listo: $PWD/$NOMBRE.pdf"
+done
+rm -f "$CSS"

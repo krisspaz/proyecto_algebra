@@ -1,13 +1,13 @@
 # Presentación del proyecto: Cifrado de Hill
 
-**Para:** Rosemary y Luis, que presentan el lunes 16 de noviembre (6 pts).
+**Para:** los cuatro integrantes. Presentamos el lunes 16 de noviembre (6 pts): 60 % presentación y 40 % Python. Según la rúbrica se califica la participación de los integrantes, así que hablan los cuatro.
 **Grupo 15 · Álgebra Lineal, sección B.**
 
-Estos archivos les dan todo lo necesario para preparar la presentación y defenderla en las preguntas. Lean primero el guion (01). Los demás explican cada parte a fondo.
+Estos archivos les dan todo lo necesario para preparar la presentación y defenderla en las preguntas. Lean primero el guion (01), que tiene la rúbrica, el reparto y el tiempo de cada parte. Los demás archivos explican cada parte a fondo. En `../guias/` hay tres guías en PDF: contexto del proyecto, explicación del código y el programa sin tecnicismos.
 
 | Archivo | Qué tiene |
 |---|---|
-| `01_guion.md` | Qué decir, en qué orden, cuánto tiempo, quién habla y qué diapositivas hacer |
+| `01_guion.md` | La rúbrica, qué decir, en qué orden, cuánto tiempo, quién habla y qué diapositivas hacer |
 | `02_la_idea.md` | Qué es el cifrado de Hill y el ejemplo HELP → HIAT paso a paso |
 | `03_la_matematica.md` | Módulo 26, inverso modular, inversa de la clave y cuándo una clave sirve |
 | `04_ataque_e_imagenes.md` | Cómo se rompe el cifrado y qué pasa al cifrar imágenes |
@@ -39,4 +39,4 @@ Revisen siempre los números contra estos archivos. Las IA suelen equivocarse en
 - **Informe completo:** `INFORME.md`.
 - **Repositorio:** https://github.com/krisspaz/proyecto_algebra
 
-Cualquier duda, pregúntenle a Milton (inversa, ataque, imágenes) o a Kris (interfaz web).
+Cualquier duda, pregúntenle a Milton (inversa, ataque, imágenes) o a Kris (interfaz web). La guía 3 (`../guias/03_el_programa_sin_tecnicismos.pdf`) explica todo el programa sin código.
