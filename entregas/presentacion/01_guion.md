@@ -101,7 +101,7 @@ Qué decir:
 
 **Diapositiva 12. Varios tamaños y casos:** claves 2×2, 3×3 y 4×4; alfabetos de 26, 37 y 113 símbolos; imágenes de cualquier tamaño (módulo 256); claves que no sirven, que se detectan y se explican.
 
-**Demo en vivo** (los pasos están en `05_demo.md`):
+**Diapositiva 13. Demo en vivo** (los pasos están en `05_demo.md`; la diapositiva tiene la captura de respaldo):
 
 1. HELP → HIAT con «Solo letras» y clave 2×2. Mostrar el paso a paso.
 2. «Descifrar este resultado»: vuelve HELP y se ve `K⁻¹`.
@@ -112,7 +112,7 @@ Qué decir:
 
 Detalle completo en `04_ataque_e_imagenes.md`.
 
-**Diapositiva 13. El ataque:** si alguien conoce unos bloques del mensaje (`P`) y su cifrado (`C`), entonces `C = K · P`, y despejando:
+**Diapositiva 14. El ataque:** si alguien conoce unos bloques del mensaje (`P`) y su cifrado (`C`), entonces `C = K · P`, y despejando:
 
 ```
 K = C · P⁻¹   (mod 26)
@@ -120,17 +120,17 @@ K = C · P⁻¹   (mod 26)
 
 Romper el cifrado es **resolver un sistema lineal**. Mostrarlo en la demo: «Usar el mensaje y el cifrado de arriba» y luego «Recuperar la clave». Aparece la misma `K`.
 
-**Diapositiva 14. Imágenes:** primero `figuras/pixeles.png`. Una imagen ya son números: cada píxel es `(R, G, B)` de 0 a 255 (no se usa ASCII). Se multiplican 3 píxeles seguidos por `K` módulo 256 y **cambia el color, no el lugar del píxel**: tres píxeles `(200, 40, 40)` salen `(56, 216, 216)`, `(120, 24, 24)` y `(160, 32, 32)`.
+**Diapositiva 15. Imágenes:** primero `figuras/pixeles.png`. Una imagen ya son números: cada píxel es `(R, G, B)` de 0 a 255 (no se usa ASCII). Se multiplican 3 píxeles seguidos por `K` módulo 256 y **cambia el color, no el lugar del píxel**: tres píxeles `(200, 40, 40)` salen `(56, 216, 216)`, `(120, 24, 24)` y `(160, 32, 32)`.
 
-**Diapositiva 15. Lo que se ve:** mostrar `figuras/imagen_sin_encadenar.png`. Las figuras se siguen viendo, porque bloques iguales dan cifrados iguales. Después mostrar `figuras/imagen_encadenada.png`: si cada bloque se mezcla con el cifrado anterior, queda como ruido. Pero sigue siendo lineal y la clave se saca igual. (En vivo: sección «Imágenes», «Usar la imagen de ejemplo» y clic en el círculo rojo.)
+**Diapositiva 16. Lo que se ve:** mostrar `figuras/imagen_sin_encadenar.png`. Las figuras se siguen viendo, porque bloques iguales dan cifrados iguales. Después mostrar `figuras/imagen_encadenada.png`: si cada bloque se mezcla con el cifrado anterior, queda como ruido. Pero sigue siendo lineal y la clave se saca igual. (En vivo: sección «Imágenes», «Usar la imagen de ejemplo» y clic en el círculo rojo.)
 
 ## Parte 6 · Conclusiones (1 min) · Luis
 
-**Diapositiva 16. Conclusiones:**
+**Diapositiva 17. Conclusiones:**
 
 1. Cifrar con Hill es multiplicar por una matriz y descifrar es multiplicar por su inversa.
 2. Módulo `m` la regla cambia: la clave sirve si y solo si `mcd(det K, m) = 1`.
 3. **La linealidad es a la vez su fortaleza matemática y su debilidad:** el mismo álgebra que permite descifrar permite sacar la clave.
 4. Por eso los cifrados modernos, como AES, usan multiplicaciones por matrices pero mezcladas con pasos no lineales.
 
-**Diapositiva 17. Preguntas.** Antes de presentar, repasen `06_preguntas.md`. Cada uno responde las de su parte.
+**Diapositiva 18. Preguntas.** Antes de presentar, repasen `06_preguntas.md`. Cada uno responde las de su parte.

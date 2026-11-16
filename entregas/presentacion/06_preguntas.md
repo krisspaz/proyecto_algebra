@@ -77,7 +77,7 @@ Se completa con X (en «Solo letras») o con espacios (en los otros alfabetos). 
 ## Sobre las aplicaciones
 
 **¿Para qué sirve esto en la vida real?**
-Para cifrar mensajes reales (con «Todo el teclado» se cifra cualquier frase con tildes y signos), fotos y, en general, cualquier archivo, porque todo archivo son bytes de 0 a 255, como los píxeles. Y la idea sigue viva: AES, el cifrado de WhatsApp, `https` y los bancos, tiene un paso (*MixColumns*) que multiplica bloques de 4 bytes por una matriz 4×4. (`../guias/01_contexto_y_proyecto.pdf`, sección 6)
+Para cifrar mensajes reales (con «Todo el teclado» se cifra cualquier frase con tildes y signos), fotos y, en general, cualquier archivo, porque todo archivo son bytes de 0 a 255, como los píxeles. Y la idea sigue viva: AES, el cifrado de WhatsApp, `https` y los bancos, tiene un paso (*MixColumns*) que multiplica bloques de 4 bytes por una matriz 4×4. (`../guias/01_contexto_y_proyecto.pdf`, sección 3)
 
 **Si AES multiplica por una matriz, ¿por qué no se rompe igual que Hill?**
 Porque AES alterna esa multiplicación con pasos **no lineales** (las S-boxes) y repite todo 10 a 14 veces. El resultado ya no es una transformación lineal, así que no se puede despejar `K = C · P⁻¹`.
