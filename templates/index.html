@@ -10,18 +10,26 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
 </head>
 <body>
-  <main class="pizarra">
+  <main class="hoja">
     <header class="cabecera">
-      <h1>Cifrado de Hill</h1>
-      <p class="formula">c = K · p <span class="mod">(mod <span data-mod></span>)</span></p>
+      <div>
+        <h1>Cifrado de Hill</h1>
+        <p class="curso">Proyecto final de Álgebra Lineal, grupo 15</p>
+      </div>
+      <p class="formula" aria-label="c igual a K por p, módulo m">
+        <span class="var">c</span> = <span class="var clave-var">K</span> · <span class="var">p</span>
+        <span class="mod">(mod <span data-mod></span>)</span>
+      </p>
     </header>
 
-    <section class="bloque" aria-labelledby="t-alfabeto">
-      <h2 id="t-alfabeto">Alfabeto</h2>
-      <div class="segmentos" role="radiogroup" aria-label="Alfabeto">
-        {% for a in alfabetos %}
-        <label><input type="radio" name="alfabeto" value="{{ a.clave }}" {% if a.clave == inicial %}checked{% endif %}> {{ a.nombre }}</label>
-        {% endfor %}
+    <section class="alfabeto" aria-labelledby="t-alfabeto">
+      <div class="fila-titulo">
+        <h2 id="t-alfabeto">Alfabeto</h2>
+        <div class="segmentos" role="radiogroup" aria-label="Alfabeto">
+          {% for a in alfabetos %}
+          <label><input type="radio" name="alfabeto" value="{{ a.clave }}" {% if a.clave == inicial %}checked{% endif %}> {{ a.nombre }}</label>
+          {% endfor %}
+        </div>
       </div>
       <p class="nota" id="nota-alfabeto"></p>
       <details class="desplegable">
@@ -30,72 +38,71 @@
       </details>
     </section>
 
-    <section class="bloque clave" aria-labelledby="t-clave">
-      <h2 id="t-clave">Clave K</h2>
-      <div class="clave-fila">
-        <div class="matriz-con-nombre">
-          <span class="nombre-matriz">K =</span>
-          <div class="matriz editable" id="matriz"></div>
-        </div>
-        <div class="controles-clave">
-          <div class="segmentos pequenos" role="radiogroup" aria-label="Tamaño de la clave">
+    <div class="trabajo">
+      <section class="clave" aria-labelledby="t-clave">
+        <div class="fila-titulo">
+          <h2 id="t-clave">Clave</h2>
+          <div class="segmentos" role="radiogroup" aria-label="Tamaño de la clave">
             <label><input type="radio" name="tamano" value="2"> 2×2</label>
             <label><input type="radio" name="tamano" value="3" checked> 3×3</label>
             <label><input type="radio" name="tamano" value="4"> 4×4</label>
           </div>
-          <button type="button" class="boton" id="aleatoria">Clave aleatoria</button>
         </div>
-      </div>
-      <p class="estado" id="estado" aria-live="polite"></p>
-      <div class="matriz-con-nombre inversa" id="bloque-inversa" hidden>
-        <span class="nombre-matriz">K⁻¹ =</span>
-        <div class="matriz" id="inversa"></div>
-      </div>
-    </section>
 
-    <section class="bloque" aria-labelledby="t-mensaje">
-      <div class="titulo-con-control">
-        <h2 id="t-mensaje">Mensaje</h2>
-        <div class="segmentos pequenos" role="radiogroup" aria-label="Operación">
-          <label><input type="radio" name="modo" value="cifrar" checked> Cifrar</label>
-          <label><input type="radio" name="modo" value="descifrar"> Descifrar</label>
+        <div class="matriz-con-nombre">
+          <span class="nombre-matriz">K =</span>
+          <div class="matriz editable" id="matriz"></div>
         </div>
-      </div>
-      <div class="textos">
-        <div>
-          <label for="entrada" class="etiqueta" id="etiqueta-entrada">Texto a cifrar</label>
-          <textarea id="entrada" rows="5" spellcheck="false">¿Nos vemos mañana? Aula #204, a las 9:30 (¡no faltes!)</textarea>
-          <p class="aviso" id="ignorados" hidden></p>
+        <button type="button" class="boton secundario" id="aleatoria">Clave aleatoria</button>
+
+        <p class="estado" id="estado" aria-live="polite"></p>
+
+        <div class="matriz-con-nombre inversa" id="bloque-inversa" hidden>
+          <span class="nombre-matriz">K⁻¹ =</span>
+          <div class="matriz" id="inversa"></div>
         </div>
-        <div>
-          <span class="etiqueta" id="etiqueta-salida">Texto cifrado</span>
-          <output id="salida" class="salida" for="entrada"></output>
-          <div class="acciones">
-            <button type="button" class="boton" id="invertir">Descifrar este resultado</button>
-            <button type="button" class="boton secundario" id="copiar">Copiar</button>
+      </section>
+
+      <section class="mensaje" aria-labelledby="t-mensaje">
+        <div class="fila-titulo">
+          <h2 id="t-mensaje">Mensaje</h2>
+          <div class="segmentos" role="radiogroup" aria-label="Operación">
+            <label><input type="radio" name="modo" value="cifrar" checked> Cifrar</label>
+            <label><input type="radio" name="modo" value="descifrar"> Descifrar</label>
           </div>
         </div>
-      </div>
-      <p class="error" id="error" role="alert" hidden></p>
-    </section>
 
-    <section class="bloque" aria-labelledby="t-pasos">
+        <label for="entrada" class="etiqueta" id="etiqueta-entrada">Texto a cifrar</label>
+        <textarea id="entrada" rows="3" spellcheck="false">¿Nos vemos mañana? Aula #204, a las 9:30 (¡no faltes!)</textarea>
+        <p class="aviso" id="ignorados" hidden></p>
+
+        <span class="etiqueta" id="etiqueta-salida">Texto cifrado</span>
+        <output id="salida" class="salida" for="entrada"></output>
+        <div class="acciones">
+          <button type="button" class="boton" id="invertir">Descifrar este resultado</button>
+          <button type="button" class="boton secundario" id="copiar">Copiar</button>
+        </div>
+        <p class="error" id="error" role="alert" hidden></p>
+      </section>
+    </div>
+
+    <section class="pasos-seccion" aria-labelledby="t-pasos">
       <h2 id="t-pasos">Paso a paso</h2>
       <p class="nota" id="nota-pasos"></p>
       <ol class="pasos" id="pasos"></ol>
     </section>
 
-    <section class="bloque" aria-labelledby="t-ataque">
+    <section class="ataque" aria-labelledby="t-ataque">
       <h2 id="t-ataque">Ataque: recuperar la clave</h2>
-      <p class="nota">Si alguien conoce un trozo del mensaje original y su versión cifrada, puede despejar la clave con K = C · P⁻¹. Bastan n² símbolos conocidos.</p>
+      <p class="nota">Si alguien conoce un trozo del mensaje original y su versión cifrada, puede despejar la clave con <span class="mate">K = C · P⁻¹</span>. Hacen falta al menos n² símbolos conocidos, y que sus bloques formen una matriz P invertible.</p>
       <div class="textos">
         <div>
           <label for="ataque-plano" class="etiqueta">Trozo del mensaje original que conoce el atacante</label>
-          <textarea id="ataque-plano" rows="3" spellcheck="false"></textarea>
+          <textarea id="ataque-plano" rows="2" spellcheck="false"></textarea>
         </div>
         <div>
           <label for="ataque-cifrado" class="etiqueta">Su versión cifrada</label>
-          <textarea id="ataque-cifrado" rows="3" spellcheck="false"></textarea>
+          <textarea id="ataque-cifrado" rows="2" spellcheck="false"></textarea>
         </div>
       </div>
       <div class="acciones">
@@ -110,6 +117,57 @@
         <p class="estado" id="ataque-veredicto"></p>
       </div>
       <p class="error" id="ataque-error" role="alert" hidden></p>
+    </section>
+
+    <section class="imagenes" aria-labelledby="t-imagenes">
+      <h2 id="t-imagenes">Imágenes (módulo 256)</h2>
+      <p class="nota">Una imagen ya está hecha de números: cada píxel es un trío <span class="mate">(R, G, B)</span> con cuánto rojo, verde y azul tiene, de 0 a 255. No hace falta ASCII. Con la clave de arriba, cada canal se corta en bloques de n píxeles seguidos y se calcula <span class="mate">c = K · p (mod 256)</span>. Como 256 = 2⁸, la clave sirve si det K es impar.</p>
+      <div class="acciones">
+        <button type="button" class="boton" id="imagen-ejemplo">Usar la imagen de ejemplo</button>
+        <label class="boton secundario subir">
+          Subir una imagen
+          <input type="file" id="imagen-archivo" accept="image/*">
+        </label>
+      </div>
+      <p class="estado" id="imagen-estado" aria-live="polite"></p>
+      <p class="error" id="imagen-error" role="alert" hidden></p>
+
+      <div id="imagen-resultado" hidden>
+        <div class="galeria">
+          <figure>
+            <button type="button" class="elegir" id="imagen-original-boton" aria-label="Elegir un bloque de la imagen original">
+              <img id="imagen-original" alt="Imagen original">
+            </button>
+            <figcaption>Original <small>(haz clic para elegir un bloque)</small></figcaption>
+          </figure>
+          <figure>
+            <img id="imagen-cifrada" alt="Imagen cifrada bloque por bloque">
+            <figcaption>Cifrada: <span class="mate">c = K · p</span></figcaption>
+          </figure>
+          <figure>
+            <img id="imagen-encadenada" alt="Imagen cifrada con bloques encadenados">
+            <figcaption>Encadenada: <span class="mate">cᵢ = K · (pᵢ + cᵢ₋₁)</span></figcaption>
+          </figure>
+          <figure>
+            <img id="imagen-descifrada" alt="Imagen descifrada">
+            <figcaption>Descifrada <small id="imagen-identica"></small></figcaption>
+          </figure>
+        </div>
+
+        <div class="bloque-pixeles">
+          <h3 id="bloque-titulo"></h3>
+          <div class="fila-pixeles">
+            <span class="rotulo">original</span>
+            <div class="pixeles" id="pixeles-original"></div>
+          </div>
+          <ol class="canales" id="bloque-canales"></ol>
+          <div class="fila-pixeles">
+            <span class="rotulo">cifrado</span>
+            <div class="pixeles" id="pixeles-cifrado"></div>
+          </div>
+          <p class="nota">Los píxeles se quedan en el mismo lugar: la matriz cambia su color. Cada valor nuevo mezcla los n píxeles del bloque en ese canal, y los canales no se mezclan entre sí.</p>
+        </div>
+      </div>
     </section>
   </main>
 

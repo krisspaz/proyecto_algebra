@@ -6,13 +6,19 @@ Uso:
 Variables de entorno opcionales: HOST (por defecto 127.0.0.1) y PORT (5050;
 el 5000 lo ocupa AirPlay en macOS).
 
-Toda la matemática vive en hill.py y ataque.py; aquí solo se validan las
-entradas y se da formato a las respuestas.
+Toda la matemática vive en hill.py, ataque.py e imagen.py; aquí solo se
+validan las entradas y se da formato a las respuestas.
 """
+import base64
+import io
+import json
 import os
 import secrets
+from math import gcd
 
+import numpy as np
 from flask import Flask, jsonify, render_template, request
+from PIL import Image, UnidentifiedImageError
 from sympy import Matrix
 from werkzeug.exceptions import HTTPException
 
@@ -27,15 +33,26 @@ from hill import (
     preparar_mensaje,
     simbolos_ignorados,
 )
+from imagen import (
+    MOD_IMG,
+    cifrar_imagen,
+    cifrar_imagen_encadenado,
+    descifrar_imagen_encadenado,
+    explicar_bloque,
+    imagen_de_prueba,
+)
+from inversa import determinante
 
 TAMANOS = (2, 3, 4)
 MAX_TEXTO = 5000
 MAX_PASOS = 8
 MAX_VALOR_CLAVE = 10**6
 NOMBRES_INVISIBLES = {"\n": "salto de línea", "\r": "salto de línea", "\t": "tabulación"}
+LADO_MAX_IMAGEN = 320  # las fotos se achican para que el cifrado encadenado sea rápido
+MAX_PIXELES_ARCHIVO = 40_000_000
 
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 64 * 1024
+app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # por las imágenes; los textos tienen su propio límite
 app.json.ensure_ascii = False
 
 
@@ -182,6 +199,75 @@ def atacar():
     except ValueError as e:
         return jsonify(ok=False, error=str(e))
     return jsonify(ok=True, clave=_a_lista(K))
+
+
+@app.post("/api/imagen")
+def imagen():
+    """Cifra una imagen con la clave de la página (mod 256).
+
+    Recibe un formulario con `clave` (JSON), `archivo` (opcional; si no viene se
+    usa la imagen de prueba) y opcionalmente `fila` y `columna` del bloque que se
+    quiere explicar.
+    """
+    try:
+        clave = json.loads(request.form.get("clave", ""))
+    except ValueError:
+        raise EntradaInvalida("La clave debe venir como JSON.")
+    K = _clave(clave)
+    det = int(determinante(K.tolist()))
+    respuesta = dict(det=det, det_mod=det % MOD_IMG, mcd=gcd(det % MOD_IMG, MOD_IMG))
+    if respuesta["mcd"] != 1:
+        return jsonify(ok=False, valida=False, error=(
+            "Para imágenes la clave necesita det K impar (256 = 2⁸). "
+            "Cambia algún número de la clave."), **respuesta)
+
+    archivo = request.files.get("archivo")
+    if archivo:
+        original, achicada = _leer_imagen(archivo)
+    else:
+        original, achicada = imagen_de_prueba(), False
+    alto, ancho = original.shape[:2]
+
+    fila = _entero(request.form.get("fila"), 60 if not archivo else alto // 2, alto - 1)
+    columna = _entero(request.form.get("columna"), 90 if not archivo else ancho // 2, ancho - 1)
+    bloque = explicar_bloque(original, K, fila, columna)
+
+    cifrada = cifrar_imagen(original, K)
+    encadenada = cifrar_imagen_encadenado(original, K)
+    descifrada = descifrar_imagen_encadenado(encadenada, K, ancho=ancho)
+    return jsonify(
+        ok=True, valida=True, alto=alto, ancho=ancho, achicada=achicada,
+        original=_png(original), cifrada=_png(cifrada), encadenada=_png(encadenada),
+        descifrada=_png(descifrada), identica=bool(np.array_equal(original, descifrada)),
+        bloque=bloque, **respuesta,
+    )
+
+
+def _leer_imagen(archivo) -> tuple[np.ndarray, bool]:
+    try:
+        img = Image.open(archivo.stream)
+        if img.width * img.height > MAX_PIXELES_ARCHIVO:
+            raise EntradaInvalida("La imagen es demasiado grande.")
+        img = img.convert("RGB")
+    except (UnidentifiedImageError, OSError, Image.DecompressionBombError):
+        raise EntradaInvalida("No se pudo abrir el archivo como imagen (prueba con PNG o JPG).")
+    achicada = max(img.size) > LADO_MAX_IMAGEN
+    if achicada:
+        img.thumbnail((LADO_MAX_IMAGEN, LADO_MAX_IMAGEN))
+    return np.array(img), achicada
+
+
+def _entero(valor, por_defecto: int, maximo: int) -> int:
+    try:
+        return min(max(int(valor), 0), maximo)
+    except (TypeError, ValueError):
+        return por_defecto
+
+
+def _png(img: np.ndarray) -> str:
+    buffer = io.BytesIO()
+    Image.fromarray(img).save(buffer, format="PNG")
+    return "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode()
 
 
 # --- Errores: siempre JSON en /api, sin detalles internos --------------------
